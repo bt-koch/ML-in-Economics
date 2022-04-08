@@ -1,6 +1,6 @@
 # Machine Learning in Economics
 
-Intoduction text
+early warning system for fiscal stress
 
 ## Data
 
@@ -8,7 +8,9 @@ describe data
 
 ## Models
 
-describle models
+This project compares the classical econometric approach of logit regression to
+an implementation of a random forest to build an early warning system signaling
+a risk of fiscal stress.
 
 ## Results
 
