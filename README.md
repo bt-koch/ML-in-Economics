@@ -18,5 +18,7 @@ describe key take aways
 
 ## About
 
-This project was created as part of the Lecture "Machine Learning in Economics"
-at the University of Bern.
+This project attempts to replicate the paper [Random forest versus logit models:
+which offers better early warning of fiscal stress?](https://www.ecb.europa.eu/pub/pdf/scpwps/ecb.wp2408~aa6b05aed7.en.pdf)
+by Barbara Jarmulska (ECB Working Paper Series No 2408 / May 2020) and was created
+as a part of the Lecture "Machine Learning in Economics" at the University of Bern.
