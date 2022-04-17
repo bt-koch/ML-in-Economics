@@ -8,9 +8,9 @@ describe data
 
 ## Models
 
-This project compares the classical econometric approach of logit regression to
-an implementation of a random forest to build an early warning system signaling
-a risk of fiscal stress.
+This project compares the traditional econometric approach of logit regression
+(with least absolute shrinkage and selection operator) to an implementation of 
+random forest to build an early warning system signalling risk of fiscal stress.
 
 ## Results
 

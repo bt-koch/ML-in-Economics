@@ -1,0 +1,109 @@
+---
+output:
+  pdf_document:
+    number_sections: true
+bibliography: tex/bibliography.bib
+---
+
+<!-- Setup -------------------------------------------------------------------->
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+<!-- Title Page + TOC --------------------------------------------------------->
+\newpage
+\vspace*{4cm}
+\begin{center}
+{\Large Machine Learning in Economics \\ (458657)}
+\end{center}
+\vspace*{1.5cm}
+\begin{center}
+\thispagestyle{empty}
+{\LARGE \bf replication paper}\\[1.5cm]
+{\Huge Early Warning System of Fiscal Stress}\\[1.5cm]
+{\bf \Large comparing the traditional logistic regression approach versus a random forest algorithm}\\[2cm]
+{\bf \large Department of Economics\\
+University of Bern}\\[1cm]
+{\Large Spring Semester 2022}\\[1.5cm]
+{\large submitted by Bela Koch} \\[2.5cm]
+\end{center}
+
+\newpage
+\tableofcontents
+\newpage
+
+<!-- Report ------------------------------------------------------------------->
+
+
+# Introduction
+
+DEFINITION OF EWS. This paper aims to design an early warning system which signals
+increased risk of a fiscal stress event in the near future.
+
+
+
+
+
+test ob zitierung funktioniert @jarmulska2020.
+
+
+# Literature Review
+
+# Model Describtion
+
+## Performance Metrics
+
+## Logit Model with LASSO penalisation
+
+@hastie2009
+
+\begin{equation}
+\hat{\beta}^{lasso} = \underset{\beta}{\text{argmin}} \sum^N_{i=1}(y_i - \beta_0 - \sum^p_{j=1}x_{ij}\beta_j)^2
+\; \; \; \; \text{subject to} \; \; \; \sum^p_{j=1}|\beta_j| \leq t
+\end{equation}
+
+Lagrangian form
+
+\begin{equation}
+\hat{\beta}^{lasso} = \underset{\beta}{\text{argmin}} \left\{ \frac{1}{2} \sum^N_{i=1}(y_i - \beta_0 - \sum^p_{j=1}x_{ij}\beta_j)^2 + \lambda \sum^p_{j=1}|\beta_j| \right\}
+\end{equation}
+
+## Random Forest
+
+Gini index
+
+\begin{equation}
+g(w) = \sum_{k \neq j}p_{wk}p_{wj} = \sum_k p_{wk}(1-p_{wk})
+\end{equation}
+
+# Data Describtion
+
+## Dependent Variable
+
+definition of a fiscal stress event
+
+empirical/historical data about fiscal stress events
+
+## Explanatory Variables
+
+# Empirical results
+
+## Performance
+
+## Interpretability
+
+### Variable Importance
+
+### Shapley Values
+
+### Partial dependence plots
+
+### Accumulated local effects plots
+
+# Conclusion
+
+<!-- References --------------------------------------------------------------->
+\newpage
+# References
+\bibliography{tex/bibliography.bib}
