@@ -1,10 +1,29 @@
 # Machine Learning in Economics
 
-early warning system for fiscal stress
+The goal of this project is to build an early warning system for fiscal stress
+episode using economic data. At the same time, the traditional econometric
+approach of using logistic regression is compared to a more modern approach of
+using a random forest algorithm.
 
 ## Data
 
-describe data
+The data used for this project covers annual frequency data for 43 countries,
+defined as 24 advanced economies and 19 emerging economies by the International
+Monetary Fund, for the years 1992-2018. It includes explanatory variables that
+can be classified to macroeconomic and global economy variables, financial
+variables, fiscal variables, variables about competitiveness and domestic demand
+as well as labor market variables. The dependent variable for a fiscal stress
+episodes is a binary variable equal to 1 in the case of a fiscal stress event
+and 0 otherwise. The fiscal stress variable is shifted with regard to the other
+variables (crisis_next_year shifted by 1 year, crisis_next_period shifted by 2
+years, crisis_first_year1 shifted by 1 year and only first year of a fiscal
+stress episode coded as 1, crisis_first_year2 shifted by 2 years and only first
+year of a fiscal stress episode coded as 1).
+
+The data corresponds to the data source provided by the author of the original
+paper and was downloaded from [figshare.com](https://figshare.com/articles/dataset/dataframe_csv/11593899).
+
+
 
 ## Models
 

@@ -12,7 +12,7 @@ start_time <- Sys.time()
 
 # # set seed (please uncomment depending on your R Version)
 # # if using R 3.6 or later:
-# set.seed(1000, sample.kind = "Rounding")
+# set.seed(12345, sample.kind = "Rounding")
 # # if using R 3.5 or earlier:
 # # set.seed(1)
 
@@ -69,9 +69,9 @@ rm(url)
 # -----------------------------------------------------------------------------.
 
 # factorize dependent variable(s)
-data$crisis_next_period <- as.factor(data$crisis_next_period)
-data$crisis_next_year <- as.factor(data$crisis_next_year)
-data$crisis_first_year <- as.factor(data$crisis_first_year)
+# data$crisis_next_period <- as.factor(data$crisis_next_period)
+# data$crisis_next_year <- as.factor(data$crisis_next_year)
+# data$crisis_first_year <- as.factor(data$crisis_first_year)
 
 # rename column
 names(data)[names(data) == ""] <- "country.id"
@@ -82,8 +82,8 @@ names(data)[names(data) == ""] <- "country.id"
 # =============================================================================.
 
 for(i in 2007:max(data$year)){
-# for(i in 2007:2007){
-
+  # for(i in 2007:2007){
+  
   # ---------------------------------------------------------------------------.
   # 2.1 Prepare training ----
   # ---------------------------------------------------------------------------.
@@ -119,7 +119,7 @@ for(i in 2007:max(data$year)){
   # response
   y.train <- train.set$crisis_next_period
   y.test <- test.set$crisis_next_period
-
+  
   # clean up
   rm(drop)
   
@@ -133,13 +133,21 @@ for(i in 2007:max(data$year)){
     x.train <- get(paste0("x.train.", dev.measure))
     x.test <- get(paste0("x.test.", dev.measure))
     
+    drop <- c("dyn_prod_dol", "dyn_fix_cap_form", "overvaluation")
+    
+    x.train <- x.train[, -which(colnames(x.train) %in% drop)]
+    x.test <- x.test[, -which(colnames(x.test) %in% drop)]
+    
     # train model -------------------------------------------------------------.
     # fit model
     lasso.fit <- cv.glmnet(x.train, y.train, family = "binomial", nfolds = 5,
                            type.measure = "auc", standardize = TRUE)
+    lasso.lambda.min <- lasso.fit$lambda.min
     
     # get predicted probability on train set
-    lasso.response.train <- predict(lasso.fit, newx = x.train, s = "lambda.min",
+    # lasso.response.train <- predict(lasso.fit, newx = x.train, s = "lambda.min",
+    #                                 type = "response", standardize = TRUE)
+    lasso.response.train <- predict(lasso.fit, newx = x.train, s = "lambda.1se",
                                     type = "response", standardize = TRUE)
     
     # get optimal threshold
@@ -165,11 +173,15 @@ for(i in 2007:max(data$year)){
     }
     
     # test model --------------------------------------------------------------.
-    lasso.response.test <- predict(lasso.fit, newx = x.test, s = "lambda.min",
+    # lasso.response.test <- predict(lasso.fit, newx = x.test, s = "lambda.min", # is this the same lambda as in train?
+    #                                type = "response", standardize = TRUE)
+    lasso.response.test <- predict(lasso.fit, newx = x.test, s = lasso.lambda.min, # is this the same lambda as in train?
+                                   type = "response", standardize = TRUE)
+    lasso.response.test <- predict(lasso.fit, newx = x.test, s = "lambda.1se", # is this the same lambda as in train?
                                    type = "response", standardize = TRUE)
     
-    colnames(lasso.response.test) <- "response"
-    lasso.response.test <- as.data.frame(lasso.response.test)
+    # colnames(lasso.response.test) <- "response"
+    # lasso.response.test <- as.data.frame(lasso.response.test)
     
     # calculate area under curve
     lasso.asses <- assess.glmnet(lasso.fit, newx = x.test, newy = y.test,
@@ -183,16 +195,19 @@ for(i in 2007:max(data$year)){
         cutoffs.lasso$weight == w
         & cutoffs.lasso$model == paste0("logit.lasso.", dev.measure)
         & cutoffs.lasso$year == i,
-        ]$cutoff
-    
+      ]$cutoff
+      
       # assign class conditional on best cutoff for corresponding weight
-      lasso.yhat.temp <- ifelse(lasso.response.test$response > cutoff.temp, 1, 0)
+      # lasso.yhat.temp <- ifelse(lasso.response.test$response > cutoff.temp, 1, 0)
+      lasso.yhat.temp <- ifelse(lasso.response.test > cutoff.temp, 1, 0)
+      
+      y.test.num <- as.numeric(as.character(y.test))
       
       # confusion matrix
-      lasso.tp.temp <- sum(lasso.yhat.temp == 1 & y.test == 1)
-      lasso.fp.temp <- sum(lasso.yhat.temp == 1 & y.test == 0)
-      lasso.tn.temp <- sum(lasso.yhat.temp == 0 & y.test == 0)
-      lasso.fn.temp <- sum(lasso.yhat.temp == 0 & y.test == 1)
+      lasso.tp.temp <- sum(lasso.yhat.temp == 1 & y.test.num == 1)
+      lasso.fp.temp <- sum(lasso.yhat.temp == 1 & y.test.num == 0)
+      lasso.tn.temp <- sum(lasso.yhat.temp == 0 & y.test.num == 0)
+      lasso.fn.temp <- sum(lasso.yhat.temp == 0 & y.test.num == 1)
       
       # calculate rates
       lasso.tpr.temp <- lasso.tp.temp/(lasso.tp.temp+lasso.fn.temp)
@@ -223,20 +238,30 @@ for(i in 2007:max(data$year)){
   
 } # end of loop over years
 
-message("weight = 1:")
-# print(round(mean(results.lasso[results.lasso$weight==1,]$auc),2))
-print(round(mean(results.lasso[results.lasso$weight==1,]$tpr),2))
-print(round(mean(results.lasso[results.lasso$weight==1,]$tnr),2))
-print(round(mean(results.lasso[results.lasso$weight==1,]$avg),2))
+test <- results.lasso[results.lasso == "logit.lasso.GDP",]
 
-message("weight = 1.5:")
-# print(round(mean(results.lasso[results.lasso$weight==1.5,]$auc),2))
-print(round(mean(results.lasso[results.lasso$weight==1.5,]$tpr),2))
-print(round(mean(results.lasso[results.lasso$weight==1.5,]$tnr),2))
-print(round(mean(results.lasso[results.lasso$weight==1.5,]$avg),2))
+# message("weight = 1:")
+# print(round(mean(test[test$weight==1,]$tpr),2))
+# print(round(mean(test[test$weight==1,]$tnr),2))
+# print(round(mean(test[test$weight==1,]$avg),2))
+# print(round(mean(test[test$weight==1,]$auc),2))
+# 
+# message("weight = 1.5:")
+# print(round(mean(test[test$weight==1.5,]$tpr),2))
+# print(round(mean(test[test$weight==1.5,]$tnr),2))
+# print(round(mean(test[test$weight==1.5,]$avg),2))
+# print(round(mean(test[test$weight==1.5,]$auc),2))
+# 
+# message("weight = 2:")
+# print(round(mean(test[test$weight==2,]$tpr),2))
+# print(round(mean(test[test$weight==2,]$tnr),2))
+# print(round(mean(test[test$weight==2,]$avg),2))
+# print(round(mean(test[test$weight==2,]$auc),2))
 
-message("weight = 2:")
-# print(round(mean(results.lasso[results.lasso$weight==2,]$auc),2))
-print(round(mean(results.lasso[results.lasso$weight==2,]$tpr),2))
-print(round(mean(results.lasso[results.lasso$weight==2,]$tnr),2))
-print(round(mean(results.lasso[results.lasso$weight==2,]$avg),2))
+for(jahr in 2007:2016){
+  message(jahr+2)
+  print(paste("tpr:", round(test[test$year == jahr,]$tpr, 2)))
+  print(paste("tnr:", round(test[test$year == jahr,]$tnr, 2)))
+}
+
+
