@@ -27,6 +27,15 @@ library(ROCR)
 
 # objects ---------------------------------------------------------------------.
 
+means.table <- data.frame(
+  variable = character(),
+  all_periods = numeric(),
+  tranq_periods = numeric(),
+  stress_periods = numeric(),
+  p_value = numeric(),
+  significant = logical()
+)
+
 results.lasso <- data.frame(
   model = character(),
   year = integer(),
@@ -76,16 +85,61 @@ rm(url)
 # rename column
 names(data)[names(data) == ""] <- "country.id"
 
+# =============================================================================.
+# 2. Exploratory Data Analysis ----
+# =============================================================================.
+
+# -----------------------------------------------------------------------------.
+# 2.1 Table: means of variables with significance ----
+# -----------------------------------------------------------------------------.
+
+drop <- c("country.id", "country", "year", "crisis_next_year", "crisis_next_period",
+          "crisis_first_year", "developed")
+
+variables <- names(data[, -which(names(data) %in% drop)])
+
+for(var in variables){
+  
+  all_periods <- mean(data[[var]])
+  tranq_periods <- mean(data[data$crisis_next_period == 0,][[var]])
+  stress_periods <- mean(data[data$crisis_next_period == 1,][[var]])
+  wilcox_test <- wilcox.test(x = data[data$crisis_next_period == 0,][[var]],
+                             y = data[data$crisis_next_period == 1,][[var]])
+  p_value <- wilcox_test$p.value
+  significant <- ifelse(p_value < 0.05, TRUE, FALSE)
+  
+  temp <- data.frame(
+    variable = var,
+    all_periods = all_periods,
+    tranq_periods = tranq_periods,
+    stress_periods = stress_periods,
+    p_value = p_value,
+    significant = significant
+  )
+  
+  means.table <- rbind(means.table, temp)
+  
+}
+
+# -----------------------------------------------------------------------------.
+# 2.2 pairwise correlations ----
+# -----------------------------------------------------------------------------.
+
+variables <- data[, which(names(data) %in% variables)]
+
+corr.matrix <- cor(variables)
+
+
 
 # =============================================================================.
-# 2. Train models ----
+# 3. Train models ----
 # =============================================================================.
 
 for(i in 2007:max(data$year)){
   # for(i in 2007:2007){
   
   # ---------------------------------------------------------------------------.
-  # 2.1 Prepare training ----
+  # 3.1 Prepare training ----
   # ---------------------------------------------------------------------------.
   
   # train and test period
@@ -124,7 +178,7 @@ for(i in 2007:max(data$year)){
   rm(drop)
   
   # ---------------------------------------------------------------------------.
-  # 2.2 Logit with LASSO Penalisation ----
+  # 3.2 Logit with LASSO Penalisation ----
   # ---------------------------------------------------------------------------.
   
   for(dev.measure in c("GDP", "DUMMY")){
@@ -231,7 +285,7 @@ for(i in 2007:max(data$year)){
   } # end of loop over dev.measure
   
   # ---------------------------------------------------------------------------.
-  # 2.3 Random Forest ----
+  # 3.3 Random Forest ----
   # ---------------------------------------------------------------------------.
   
   # rffit.GDP <- randomForest(x.GDP, y, ntree = 10)
