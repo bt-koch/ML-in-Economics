@@ -1,0 +1,21 @@
+variable;name
+cpi;CPI
+dyn_gdp;GDP dynamics
+dyn_gdp_china;China GDP dynamics
+dyn_GDP_US;US GDP dynamics
+interest_rate_US;US interest rates
+oil_yoy;Oil price dynamics
+dyn_consum;Consumption dynamics
+dyn_fx_rate;FX rate dynamics
+diff_priv_credit_gdp;Credit to GDP change
+net_lending;Net lending
+public_debt;Public debt
+interest_on_debt;Interest on debt
+overvaluation;Currency overvaluation
+ca_balance;Current account balance
+dyn_fix_cap_form;Fixed capital formation dynamics
+dyn_export_share;Export share dynamics
+diff_unempl;Unemployment change
+dyn_prod_dol;Labor productivity dynamics
+VIX;VIX
+GDP_per_cap;GDP per capita
