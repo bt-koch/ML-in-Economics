@@ -14,7 +14,8 @@ start_time <- Sys.time()
 # # if using R 3.6 or later:
 # set.seed(12345, sample.kind = "Rounding")
 # # if using R 3.5 or earlier:
-# # set.seed(1)
+# set.seed(0)
+set.seed(34)
 
 # package management ----------------------------------------------------------.
 if(!require(glmnet)) install.packages("glmnet")
@@ -55,7 +56,28 @@ cutoffs.lasso <- data.frame(
 
 yhat.lasso <- data.frame()
 
+results.rf <- data.frame(
+  model = character(),
+  year = integer(),
+  weight = numeric(),
+  tpr = numeric(),
+  tnr = numeric(),
+  avg = numeric(),
+  auc = numeric()
+)
+
+cutoffs.rf <- data.frame(
+  model = character(),
+  year = integer(),
+  weight = numeric(),
+  cutoff = numeric()
+)
+
+
+
 weights <- c(1, 1.5, 2)
+
+list.export <- list()
 
 # functions -------------------------------------------------------------------.
 
@@ -72,18 +94,23 @@ url <- "https://raw.githubusercontent.com/bt-koch/ML-in-Economics/main/data/data
 data <- read.csv(url, check.names = F)
 rm(url)
 
-
 # -----------------------------------------------------------------------------.
 # 1.2 Data Manipulation ----
 # -----------------------------------------------------------------------------.
 
-# factorize dependent variable(s)
-# data$crisis_next_period <- as.factor(data$crisis_next_period)
-# data$crisis_next_year <- as.factor(data$crisis_next_year)
-# data$crisis_first_year <- as.factor(data$crisis_first_year)
+# factorize dummy variable(s)
+# data$developed <- factor(x = data$developed, levels = c(0,1), labels = c(0,1))
+data$crisis_next_period <- factor(x = data$crisis_next_period, levels = c(0,1), labels = c(0,1))
+data$crisis_next_year <- factor(data$crisis_next_year, levels = c(0,1), labels = c(0,1))
+data$crisis_first_year <- factor(data$crisis_first_year, levels = c(0,1), labels = c(0,1))
 
 # rename column
 names(data)[names(data) == ""] <- "country.id"
+
+# read csv for variable names
+varnames <- read.csv("data/varnames.csv", sep = ";")
+
+list.export[["varnames"]] <- varnames
 
 # =============================================================================.
 # 2. Exploratory Data Analysis ----
@@ -121,6 +148,8 @@ for(var in variables){
   
 }
 
+list.export[["means.table"]] <- means.table
+
 # -----------------------------------------------------------------------------.
 # 2.2 pairwise correlations ----
 # -----------------------------------------------------------------------------.
@@ -129,14 +158,23 @@ variables <- data[, which(names(data) %in% variables)]
 
 corr.matrix <- cor(variables)
 
+list.export[["corr.matrix"]] <- corr.matrix
 
 
 # =============================================================================.
 # 3. Train models ----
 # =============================================================================.
 
+# test <- 1
+# test.set.seed <- 30
+# while(test > 0.1){
+# results.lasso <- c()
+# test.set.seed <- test.set.seed + 1
+# cat("\nrun with set.seed =", test.set.seed)
+# set.seed(test.set.seed)
+
 for(i in 2007:max(data$year)){
-  # for(i in 2007:2007){
+# for(i in 2007:2008){
   
   # ---------------------------------------------------------------------------.
   # 3.1 Prepare training ----
@@ -159,7 +197,7 @@ for(i in 2007:max(data$year)){
     train.set[, -which(names(train.set) %in% c(drop, "developed"))]
   )
   x.test.GDP <- as.matrix(
-    test.set[, -which(names(train.set) %in% c(drop, "developed"))]
+    test.set[, -which(names(test.set) %in% c(drop, "developed"))]
   )
   
   # dummy as measure of development of country
@@ -180,95 +218,100 @@ for(i in 2007:max(data$year)){
   # ---------------------------------------------------------------------------.
   # 3.2 Logit with LASSO Penalisation ----
   # ---------------------------------------------------------------------------.
-  
+  cat("\ntrain logit lasso for", i)
+
   for(dev.measure in c("GDP", "DUMMY")){
-    
+  # for(dev.measure in c("GDP")){
+
     # get data ----------------------------------------------------------------.
     x.train <- get(paste0("x.train.", dev.measure))
     x.test <- get(paste0("x.test.", dev.measure))
-    
+
+    # drop variables for logit because of high pairwise correlation
     drop <- c("dyn_prod_dol", "dyn_fix_cap_form", "overvaluation")
-    
+
     x.train <- x.train[, -which(colnames(x.train) %in% drop)]
     x.test <- x.test[, -which(colnames(x.test) %in% drop)]
-    
+
     # train model -------------------------------------------------------------.
     # fit model
     lasso.fit <- cv.glmnet(x.train, y.train, family = "binomial", nfolds = 5,
                            type.measure = "auc", standardize = TRUE)
     lasso.lambda.min <- lasso.fit$lambda.min
-    
+
     # get predicted probability on train set
     # lasso.response.train <- predict(lasso.fit, newx = x.train, s = "lambda.min",
     #                                 type = "response", standardize = TRUE)
     lasso.response.train <- predict(lasso.fit, newx = x.train, s = "lambda.1se",
                                     type = "response", standardize = TRUE)
-    
+
     # get optimal threshold
     lasso.pred <- prediction(lasso.response.train, y.train)
     lasso.sens <- performance(lasso.pred, measure = "sens", x.measure = "cutoff")
     lasso.spec <- performance(lasso.pred, measure = "spec", x.measure = "cutoff")
-    
+
     for(weight in weights){
+    # for(weight in c(1)){
       sens <- lasso.sens@y.values[[1]]
       spec <- lasso.spec@y.values[[1]]
       max.sum <- which.max(weight*sens+spec)
       lasso.cutoff <- lasso.sens@x.values[[1]][max.sum]
-      
+
       temp <- data.frame(
         model = paste0("logit.lasso.", dev.measure),
         year = i,
         weight = weight,
         cutoff = lasso.cutoff
       )
-      
+
       cutoffs.lasso <- rbind(cutoffs.lasso, temp)
-      
+
     }
-    
+
     # test model --------------------------------------------------------------.
     # lasso.response.test <- predict(lasso.fit, newx = x.test, s = "lambda.min", # is this the same lambda as in train?
     #                                type = "response", standardize = TRUE)
-    lasso.response.test <- predict(lasso.fit, newx = x.test, s = lasso.lambda.min, # is this the same lambda as in train?
-                                   type = "response", standardize = TRUE)
+    # lasso.response.test <- predict(lasso.fit, newx = x.test, s = lasso.lambda.min, # is this the same lambda as in train?
+    #                                type = "response", standardize = TRUE)
     lasso.response.test <- predict(lasso.fit, newx = x.test, s = "lambda.1se", # is this the same lambda as in train?
                                    type = "response", standardize = TRUE)
-    
+
     # colnames(lasso.response.test) <- "response"
     # lasso.response.test <- as.data.frame(lasso.response.test)
-    
+
     # calculate area under curve
     lasso.asses <- assess.glmnet(lasso.fit, newx = x.test, newy = y.test,
                                  family = "binomial", standardize = TRUE)
     lasso.auc <- lasso.asses$auc
-    
+
     # calculate true positive rate and true negative rate with different weights
     # on sensitivity and specificity
     for(w in weights){
+    # for(w in c(1)){
       cutoff.temp <- cutoffs.lasso[
         cutoffs.lasso$weight == w
         & cutoffs.lasso$model == paste0("logit.lasso.", dev.measure)
         & cutoffs.lasso$year == i,
       ]$cutoff
-      
+
       # assign class conditional on best cutoff for corresponding weight
       # lasso.yhat.temp <- ifelse(lasso.response.test$response > cutoff.temp, 1, 0)
       lasso.yhat.temp <- ifelse(lasso.response.test > cutoff.temp, 1, 0)
-      
+
       y.test.num <- as.numeric(as.character(y.test))
-      
+
       # confusion matrix
       lasso.tp.temp <- sum(lasso.yhat.temp == 1 & y.test.num == 1)
       lasso.fp.temp <- sum(lasso.yhat.temp == 1 & y.test.num == 0)
       lasso.tn.temp <- sum(lasso.yhat.temp == 0 & y.test.num == 0)
       lasso.fn.temp <- sum(lasso.yhat.temp == 0 & y.test.num == 1)
-      
+
       # calculate rates
       lasso.tpr.temp <- lasso.tp.temp/(lasso.tp.temp+lasso.fn.temp)
       lasso.tnr.temp <- lasso.tn.temp/(lasso.tn.temp+lasso.fp.temp)
       lasso.avg.temp <- 0.5*(lasso.tpr.temp+lasso.tnr.temp)
-      
-      # save results 
+
+      # save results
       temp <- data.frame(
         model = paste0("logit.lasso.", dev.measure),
         year = i,
@@ -278,22 +321,113 @@ for(i in 2007:max(data$year)){
         avg = lasso.avg.temp,
         auc = lasso.auc
       )
-      
+
       results.lasso <- rbind(results.lasso, temp)
-      
+
     } # end of loop over weights
   } # end of loop over dev.measure
   
   # ---------------------------------------------------------------------------.
   # 3.3 Random Forest ----
   # ---------------------------------------------------------------------------.
-  
-  # rffit.GDP <- randomForest(x.GDP, y, ntree = 10)
+  cat("\ntrain random forest for", i)
+
+  for(dev.measure in c("GDP", "DUMMY")){
+
+    # get data ----------------------------------------------------------------.
+    x.train <- get(paste0("x.train.", dev.measure))
+    x.test <- get(paste0("x.test.", dev.measure))
+
+    # train model -------------------------------------------------------------.
+    # fit model
+    rf.fit <- randomForest(x = x.train, y = y.train, ntree = 10000)
+
+    # get predicted probability on train set
+    rf.response.train <- predict(rf.fit, newx = x.train, type = "prob")
+    rf.response.train <- rf.response.train[,2]
+
+    # get optimal threshold
+    rf.pred <- prediction(rf.response.train, y.train)
+    rf.sens <- performance(rf.pred, measure = "sens", x.measure = "cutoff")
+    rf.spec <- performance(rf.pred, measure = "spec", x.measure = "cutoff")
+
+    for(weight in weights){
+      sens <- rf.sens@y.values[[1]]
+      spec <- rf.spec@y.values[[1]]
+      max.sum <- which.max(weight*sens+spec)
+      rf.cutoff <- rf.sens@x.values[[1]][max.sum]
+
+      temp <- data.frame(
+        model = paste0("rf.", dev.measure),
+        year = i,
+        weight = weight,
+        cutoff = rf.cutoff
+      )
+
+      cutoffs.rf <- rbind(cutoffs.rf, temp)
+
+    }
+
+
+    # test model --------------------------------------------------------------.
+    rf.response.test <- predict(rf.fit, newdata = x.test, type = "prob")
+    rf.response.test <- rf.response.test[,2]
+
+    # calculate area under curve
+    rf.asses <- prediction(rf.response.test, y.test)
+    rf.auc <- performance(rf.asses, measure = "auc")@y.values[[1]]
+
+    # calculate true positive rate and true negative rate with different weights
+    # on sensitivity and specificity
+    for(w in weights){
+      cutoff.temp <- cutoffs.rf[
+        cutoffs.rf$weight == w
+        & cutoffs.rf$model == paste0("rf.", dev.measure)
+        & cutoffs.rf$year == i,
+      ]$cutoff
+
+      # assign class conditional on best cutoff for corresponding weight
+      rf.yhat.temp <- ifelse(rf.response.test > cutoff.temp, 1, 0)
+
+      y.test.num <- as.numeric(as.character(y.test))
+
+      # confusion matrix
+      rf.tp.temp <- sum(rf.yhat.temp == 1 & y.test.num == 1)
+      rf.fp.temp <- sum(rf.yhat.temp == 1 & y.test.num == 0)
+      rf.tn.temp <- sum(rf.yhat.temp == 0 & y.test.num == 0)
+      rf.fn.temp <- sum(rf.yhat.temp == 0 & y.test.num == 1)
+
+      # calculate rates
+      rf.tpr.temp <- rf.tp.temp/(rf.tp.temp+rf.tn.temp)
+      rf.tnr.temp <- rf.tn.temp/(rf.tn.temp+rf.fp.temp)
+      rf.avg.temp <- 0.5*(rf.tpr.temp+rf.tnr.temp)
+
+      # save results
+      temp <- data.frame(
+        model = paste0("rf.", dev.measure),
+        year = i,
+        weight = w,
+        tpr = rf.tpr.temp,
+        tnr = rf.tnr.temp,
+        avg = rf.avg.temp,
+        auc = rf.auc
+      )
+
+      results.rf <- rbind(results.rf, temp)
+
+    } # end of loop over weights
+  } # end of loop over dev.measure
   
 } # end of loop over years
 
-test <- results.lasso[results.lasso == "logit.lasso.GDP",]
-
+# -------------------.
+# test <- results.lasso[results.lasso == "logit.lasso.GDP",]
+# test <- results.lasso[results.lasso$model == "logit.lasso.GDP"
+#                       & results.lasso$year == 2007
+#                       & results.lasso$weight == 1,]
+# test <- test$tpr
+# print(test)
+# }
 # message("weight = 1:")
 # print(round(mean(test[test$weight==1,]$tpr),2))
 # print(round(mean(test[test$weight==1,]$tnr),2))
@@ -312,10 +446,15 @@ test <- results.lasso[results.lasso == "logit.lasso.GDP",]
 # print(round(mean(test[test$weight==2,]$avg),2))
 # print(round(mean(test[test$weight==2,]$auc),2))
 
-for(jahr in 2007:2016){
-  message(jahr+2)
-  print(paste("tpr:", round(test[test$year == jahr,]$tpr, 2)))
-  print(paste("tnr:", round(test[test$year == jahr,]$tnr, 2)))
-}
+# for(jahr in 2007:2016){
+#   message(jahr+2)
+#   print(paste("tpr:", round(test[test$year == jahr,]$tpr, 2)))
+#   print(paste("tnr:", round(test[test$year == jahr,]$tnr, 2)))
+# }
 
 
+# =============================================================================.
+# 4. Save data for RMD report ----
+# =============================================================================.
+
+save(list.export, file = "data/input.RData")
