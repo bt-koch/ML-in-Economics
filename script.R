@@ -41,8 +41,8 @@ results.lasso <- data.frame(
   model = character(),
   year = integer(),
   weight = numeric(),
-  tpr = numeric(),
-  tnr = numeric(),
+  prop.pos = numeric(),
+  prop.neg = numeric(),
   avg = numeric(),
   auc = numeric()
 )
@@ -60,8 +60,8 @@ results.rf <- data.frame(
   model = character(),
   year = integer(),
   weight = numeric(),
-  tpr = numeric(),
-  tnr = numeric(),
+  prop.pos = numeric(),
+  prop.neg = numeric(),
   avg = numeric(),
   auc = numeric()
 )
@@ -307,17 +307,29 @@ for(i in 2007:max(data$year)){
       lasso.fn.temp <- sum(lasso.yhat.temp == 0 & y.test.num == 1)
 
       # calculate rates
-      lasso.tpr.temp <- lasso.tp.temp/(lasso.tp.temp+lasso.fn.temp)
-      lasso.tnr.temp <- lasso.tn.temp/(lasso.tn.temp+lasso.fp.temp)
-      lasso.avg.temp <- 0.5*(lasso.tpr.temp+lasso.tnr.temp)
+      # lasso.tpr.temp <- lasso.tp.temp/(lasso.tp.temp+lasso.fn.temp)
+      # lasso.tnr.temp <- lasso.tn.temp/(lasso.tn.temp+lasso.fp.temp)
+      # lasso.avg.temp <- 0.5*(lasso.tpr.temp+lasso.tnr.temp)
+      lasso.prop.positives <- lasso.tp.temp/sum(y.test.num == 1)
+      lasso.prop.negatives <- lasso.tn.temp/sum(y.test.num == 0)
+      lasso.avg.temp <- 0.5*(lasso.prop.positives+lasso.prop.negatives)
 
       # save results
+      # temp <- data.frame(
+      #   model = paste0("logit.lasso.", dev.measure),
+      #   year = i,
+      #   weight = w,
+      #   tpr = lasso.tpr.temp,
+      #   tnr = lasso.tnr.temp,
+      #   avg = lasso.avg.temp,
+      #   auc = lasso.auc
+      # )
       temp <- data.frame(
         model = paste0("logit.lasso.", dev.measure),
         year = i,
         weight = w,
-        tpr = lasso.tpr.temp,
-        tnr = lasso.tnr.temp,
+        prop.pos = lasso.prop.positives,
+        prop.neg = lasso.prop.negatives,
         avg = lasso.avg.temp,
         auc = lasso.auc
       )
@@ -398,17 +410,29 @@ for(i in 2007:max(data$year)){
       rf.fn.temp <- sum(rf.yhat.temp == 0 & y.test.num == 1)
 
       # calculate rates
-      rf.tpr.temp <- rf.tp.temp/(rf.tp.temp+rf.tn.temp)
-      rf.tnr.temp <- rf.tn.temp/(rf.tn.temp+rf.fp.temp)
-      rf.avg.temp <- 0.5*(rf.tpr.temp+rf.tnr.temp)
+      # rf.tpr.temp <- rf.tp.temp/(rf.tp.temp+rf.tn.temp)
+      # rf.tnr.temp <- rf.tn.temp/(rf.tn.temp+rf.fp.temp)
+      # rf.avg.temp <- 0.5*(rf.tpr.temp+rf.tnr.temp)
+      rf.prop.positives.temp <- rf.tp.temp/sum(y.test.num == 1)
+      rf.prop.negatives.temp <- rf.tn.temp/sum(y.test.num == 0)
+      rf.avg.temp <- 0.5*(rf.prop.positives.temp+rf.prop.negatives.temp)
 
       # save results
+      # temp <- data.frame(
+      #   model = paste0("rf.", dev.measure),
+      #   year = i,
+      #   weight = w,
+      #   tpr = rf.tpr.temp,
+      #   tnr = rf.tnr.temp,
+      #   avg = rf.avg.temp,
+      #   auc = rf.auc
+      # )
       temp <- data.frame(
         model = paste0("rf.", dev.measure),
         year = i,
         weight = w,
-        tpr = rf.tpr.temp,
-        tnr = rf.tnr.temp,
+        prop.pos = rf.prop.positives.temp,
+        prop.neg = rf.prop.negatives.temp,
         avg = rf.avg.temp,
         auc = rf.auc
       )
@@ -420,41 +444,29 @@ for(i in 2007:max(data$year)){
   
 } # end of loop over years
 
-# -------------------.
-# test <- results.lasso[results.lasso == "logit.lasso.GDP",]
-# test <- results.lasso[results.lasso$model == "logit.lasso.GDP"
-#                       & results.lasso$year == 2007
-#                       & results.lasso$weight == 1,]
-# test <- test$tpr
-# print(test)
-# }
-# message("weight = 1:")
-# print(round(mean(test[test$weight==1,]$tpr),2))
-# print(round(mean(test[test$weight==1,]$tnr),2))
-# print(round(mean(test[test$weight==1,]$avg),2))
-# print(round(mean(test[test$weight==1,]$auc),2))
-# 
-# message("weight = 1.5:")
-# print(round(mean(test[test$weight==1.5,]$tpr),2))
-# print(round(mean(test[test$weight==1.5,]$tnr),2))
-# print(round(mean(test[test$weight==1.5,]$avg),2))
-# print(round(mean(test[test$weight==1.5,]$auc),2))
-# 
-# message("weight = 2:")
-# print(round(mean(test[test$weight==2,]$tpr),2))
-# print(round(mean(test[test$weight==2,]$tnr),2))
-# print(round(mean(test[test$weight==2,]$avg),2))
-# print(round(mean(test[test$weight==2,]$auc),2))
-
-# for(jahr in 2007:2016){
-#   message(jahr+2)
-#   print(paste("tpr:", round(test[test$year == jahr,]$tpr, 2)))
-#   print(paste("tnr:", round(test[test$year == jahr,]$tnr, 2)))
-# }
-
 
 # =============================================================================.
-# 4. Save data for RMD report ----
+# 4. get relevant results and save rmd input ----
 # =============================================================================.
 
+# -----------------------------------------------------------------------------.
+# 4.1 calculate average prediction metrics ----
+# -----------------------------------------------------------------------------.
+results.avg <- rbind(results.lasso, results.rf)
+results.avg <- results.avg[results.avg$weight == 1.5,]
+
+# aggregate over years by model
+results.avg <- aggregate(results.avg[c("prop.pos", "prop.neg", "auc")],
+                         by = list(results.avg$model), FUN = mean)
+names(results.avg)[names(results.avg) == "Group.1"] <- "model"
+
+# calculate mean
+results.avg$avg <- rowMeans(results.avg[c("prop.pos", "prop.neg")])
+
+list.export[["results.avg"]] <- results.avg
+
+
+# -----------------------------------------------------------------------------.
+# 4.2 save relevant data for rmd report ----
+# -----------------------------------------------------------------------------.
 save(list.export, file = "data/input.RData")
