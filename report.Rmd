@@ -8,7 +8,17 @@ bibliography: tex/bibliography.bib
 <!-- Setup -------------------------------------------------------------------->
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+if(!require(kableExtra)) install.packages("kableExtra")
+if(!require(randomForest)) install.packages("randomForest")
+if(!require(iml)) install.packages("iml")
+
+library(kableExtra)
+library(randomForest)
+library(iml)
+
+knitr::opts_chunk$set(echo = FALSE)
+
+load("data/input.RData")
 ```
 
 <!-- Title Page + TOC --------------------------------------------------------->
@@ -91,11 +101,42 @@ empirical/historical data about fiscal stress events
 
 ## Performance
 
+```{r avg-pred-accur}
+# get relevant data
+dt <- list.export[["results.avg"]]
+
+# manipulate formation
+dt[!colnames(dt) %in% c("model", "auc")] <- apply(dt[!colnames(dt) %in% c("model", "auc")], 2, function(x) x*100)
+dt[colnames(dt) != "model"] <- apply(dt[colnames(dt) != "model"], 2, function(x) round(x, 2))
+```
+
+
+\begin{table}[H]
+\centering
+\begin{tabular}{@{\extracolsep{4pt}}lrrrr@{}}
+                                             & \multicolumn{2}{c}{Logit LASSO}                                         & \multicolumn{2}{c}{Random Forest}                                       \\ \cline{2-3} \cline{4-5}
+                                             & \multicolumn{1}{c}{\begin{tabular}[c]{@{}r@{}}advanced\\ dummy\end{tabular}} & \multicolumn{1}{c}{\begin{tabular}[c]{@{}r@{}}GDP\\ per capita\end{tabular}} & \multicolumn{1}{c}{\begin{tabular}[c]{@{}r@{}}advanced\\ dummy\end{tabular}} & \multicolumn{1}{c}{\begin{tabular}[c]{@{}r@{}}GDP\\ per capita\end{tabular}} \\ \hline
+\begin{tabular}[c]{@{}l@{}}\% of correctly\\ classified stress episodes\end{tabular}   & `r dt[dt$model == "logit.lasso.DUMMY",]$prop.pos` & `r dt[dt$model == "logit.lasso.GDP",]$prop.pos` & `r dt[dt$model == "rf.DUMMY",]$prop.pos` & `r dt[dt$model == "rf.GDP",]$prop.pos` \\ \hline
+\begin{tabular}[c]{@{}l@{}}\% of correctly\\ classified tranquil episodes\end{tabular} & `r dt[dt$model == "logit.lasso.DUMMY",]$prop.neg` & `r dt[dt$model == "logit.lasso.GDP",]$prop.neg` & `r dt[dt$model == "rf.DUMMY",]$prop.neg` & `r dt[dt$model == "rf.GDP",]$prop.neg` \\ \hline
+\begin{tabular}[c]{@{}l@{}}Average\\ \phantom{Average} \end{tabular}                                      & `r dt[dt$model == "logit.lasso.DUMMY",]$avg`      & `r dt[dt$model == "logit.lasso.GDP",]$avg`      & `r dt[dt$model == "rf.DUMMY",]$avg`      & `r dt[dt$model == "rf.GDP",]$avg`      \\ \hline
+\begin{tabular}[c]{@{}l@{}}AUROC\\ \phantom{AUROC} \end{tabular}                                        & `r dt[dt$model == "logit.lasso.DUMMY",]$auc`      & `r dt[dt$model == "logit.lasso.GDP",]$auc`      & `r dt[dt$model == "rf.DUMMY",]$auc`      & `r dt[dt$model == "rf.GDP",]$auc`      \\ \hline
+\end{tabular}
+\caption{\label{tab:avg-pred-accur}Average prediction accuracy of early warning models for years 2009-2018 (all observations used)}
+\end{table}
+
+
 ## Interpretability
 
 ### Variable Importance
 
+```{r rf.varimp}
+rf.fit.eval <- list.export[["rf.fit.eval"]]
+varImpPlot(rf.fit.eval)
+```
+
 ### Shapley Values
+
+plot like varimp
 
 ### Partial dependence plots
 

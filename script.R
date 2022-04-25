@@ -21,10 +21,12 @@ set.seed(34)
 if(!require(glmnet)) install.packages("glmnet")
 if(!require(randomForest)) install.packages("randomForest")
 if(!require(ROCR)) install.packages("ROCR")
+if(!require(iml)) install.packages("iml")
 
 library(glmnet)
 library(randomForest)
 library(ROCR)
+library(iml)
 
 # objects ---------------------------------------------------------------------.
 
@@ -80,6 +82,11 @@ weights <- c(1, 1.5, 2)
 list.export <- list()
 
 # functions -------------------------------------------------------------------.
+
+pred <- function(model, newdata){
+  res <- as.data.frame(predict(model, newdata, type = "prob"))
+  return(res[2])
+}
 
 
 # =============================================================================.
@@ -440,6 +447,49 @@ for(i in 2007:max(data$year)){
       results.rf <- rbind(results.rf, temp)
 
     } # end of loop over weights
+    
+    # save some objects for evaluation ----------------------------------------.
+    if(i == max(data$year) & dev.measure == "GDP"){
+      
+      rf.fit.eval <- rf.fit
+      list.export[["rf.fit.eval"]] <- rf.fit.eval
+      
+      x.train.df <- as.data.frame(x.train)
+      
+      predictor.rf.eval <- Predictor$new(
+        model = rf.fit.eval,
+        data = x.train.df,
+        y = rf.response.train,
+        predict.function = pred,
+        class = "classification"
+      )
+      
+      test <- data.frame(
+        feature = character(),
+        phi = numeric()
+      )
+      
+      # for(obs in 1:nrow(x.train.df)){
+      for(obs in 1:50){
+        
+        x.interest <- x.train.df[obs,]
+        temp <- Shapley$new(predictor.rf.eval, x.interest = x.interest)
+        
+        temp <- data.frame(
+          feature = temp$results$feature,
+          phi = abs(temp$results$phi)
+        )
+        
+        test <- rbind(test, temp)
+        
+        
+      }
+      
+      # x.interest <- x.train.df
+      # 
+      # shapley.rf.eval <- Shapley$new(predictor.rf.eval, x.interest = x.interest)
+    }
+    
   } # end of loop over dev.measure
   
 } # end of loop over years
