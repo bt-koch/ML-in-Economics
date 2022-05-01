@@ -19,6 +19,7 @@ library(iml)
 knitr::opts_chunk$set(echo = FALSE)
 
 load("data/input.RData")
+varnames <- list.export[["varnames"]]
 ```
 
 <!-- Title Page + TOC --------------------------------------------------------->
@@ -36,7 +37,7 @@ load("data/input.RData")
 {\bf \large Department of Economics\\
 University of Bern}\\[1cm]
 {\Large Spring Semester 2022}\\[1.5cm]
-{\large submitted by Bela Koch} \\[2.5cm]
+{\large submitted by Bela Tim Koch} \\[2.5cm]
 \end{center}
 
 \newpage
@@ -97,7 +98,7 @@ empirical/historical data about fiscal stress events
 
 ## Explanatory Variables
 
-# Empirical results
+# Empirical Results
 
 ## Performance
 
@@ -127,20 +128,76 @@ dt[colnames(dt) != "model"] <- apply(dt[colnames(dt) != "model"], 2, function(x)
 
 ## Interpretability
 
-### Variable Importance
+### Variable Importance and Shapley Values
 
-```{r rf.varimp}
+```{r rf.VI.SV, fig.cap="", fig.height=3}
+# prepare data for plot for variable importance
 rf.fit.eval <- list.export[["rf.fit.eval"]]
-varImpPlot(rf.fit.eval)
+
+varimp <- as.data.frame(importance(rf.fit.eval))
+varimp$variable <- rownames(varimp)
+varimp <- varimp[order(varimp$MeanDecreaseGini, decreasing = T), c(1,2)]
+varimp$yaxis <- rev(1:nrow(varimp))
+
+varimp <- merge(x = varimp, y = varnames,
+                by = "variable",
+                all = T)
+
+varimp <- varimp[order(varimp$MeanDecreaseGini, decreasing = T), c(1:4)]
+labs.varimp <- rev(varimp$name)
+
+# prepare data for plot for shapley values
+shapley.values <- list.export[["shapley.values"]]
+
+shapley.values <- shapley.values[order(shapley.values$x, decreasing = T), c(1,2)]
+shapley.values$yaxis <- rev(1:nrow(shapley.values))
+
+shapley.values <- merge(x = shapley.values, y = varnames,
+                        by.x = "Group.1", by.y = "variable",
+                        all = T)
+
+shapley.values <- shapley.values[order(shapley.values$x, decreasing = T), c(1:4)]
+labs.shapley <- rev(shapley.values$name)
+
+# draw plot
+par(mar = c(5.1, 10.5, 2.1, 0.5), mfrow = c(1,2), las=1, cex = 0.75, cex.axis = 0.75)
+
+# plot 1: variable importance
+plot(x = varimp$MeanDecreaseGini, y = varimp$yaxis,
+     main = "", xlab = "Breiman's Variable Importance", ylab = "", yaxt = "none",
+     pch = 16)
+abline(h = 1:20, lty = 3)
+axis(side = 2, at = 1:20, labels = labs.varimp)
+
+# plot 2: shapley values
+plot(x = shapley.values$x, y = shapley.values$yaxis,
+     main = "", xlab = "Shapley Values", ylab = "", yaxt = "none", pch = 16)
+abline(h = 1:20, lty = 3)
+axis(side = 2, at = 1:20, labels = labs.shapley)
 ```
 
-### Shapley Values
 
-plot like varimp
+### Partial dependence plots and Accumulated local effects plots
 
-### Partial dependence plots
+```{r}
 
-### Accumulated local effects plots
+# prepare partial dependence plots
+partial.ca_balance  <- list.export[["partial.ca_balance"]]
+partial.net_lending <- list.export[["partial.net_lending"]]
+
+p1 <- plot(x = partial.ca_balance$ca_balance, y = partial.ca_balance$yhat,
+           type = "l", xlab = "Current account balance",
+           ylab = "Predicted probability of stress")
+p2 <- plot(x = partial.net_lending$net_lending, y = partial.net_lending$yhat,
+           type = "l", xlab = "Net lending",
+           ylab = "Predicted probability of stress")
+
+par(mfrow = c(1,2))
+p1
+p2
+
+
+```
 
 # Conclusion
 

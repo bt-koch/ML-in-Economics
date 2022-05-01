@@ -15,18 +15,20 @@ start_time <- Sys.time()
 # set.seed(12345, sample.kind = "Rounding")
 # # if using R 3.5 or earlier:
 # set.seed(0)
-set.seed(34)
+# set.seed(34)
 
 # package management ----------------------------------------------------------.
 if(!require(glmnet)) install.packages("glmnet")
 if(!require(randomForest)) install.packages("randomForest")
 if(!require(ROCR)) install.packages("ROCR")
 if(!require(iml)) install.packages("iml")
+if(!require(pdp)) install.packages("pdp")
 
 library(glmnet)
 library(randomForest)
 library(ROCR)
 library(iml)
+library(pdp)
 
 # objects ---------------------------------------------------------------------.
 
@@ -75,11 +77,14 @@ cutoffs.rf <- data.frame(
   cutoff = numeric()
 )
 
-
-
 weights <- c(1, 1.5, 2)
 
 list.export <- list()
+
+shapley.values <- data.frame(
+  feature = character(),
+  phi = numeric()
+)
 
 # functions -------------------------------------------------------------------.
 
@@ -96,6 +101,7 @@ pred <- function(model, newdata){
 # -----------------------------------------------------------------------------.
 # 1.1 Download Data ----
 # -----------------------------------------------------------------------------.
+cat("\nLoad and prepare data...")
 
 url <- "https://raw.githubusercontent.com/bt-koch/ML-in-Economics/main/data/data-ecb-wp-2408.csv"
 data <- read.csv(url, check.names = F)
@@ -122,6 +128,7 @@ list.export[["varnames"]] <- varnames
 # =============================================================================.
 # 2. Exploratory Data Analysis ----
 # =============================================================================.
+cat("\nPerform exploratory data analysis...")
 
 # -----------------------------------------------------------------------------.
 # 2.1 Table: means of variables with significance ----
@@ -171,6 +178,7 @@ list.export[["corr.matrix"]] <- corr.matrix
 # =============================================================================.
 # 3. Train models ----
 # =============================================================================.
+cat("\nTrain models:")
 
 # test <- 1
 # test.set.seed <- 30
@@ -451,43 +459,73 @@ for(i in 2007:max(data$year)){
     # save some objects for evaluation ----------------------------------------.
     if(i == max(data$year) & dev.measure == "GDP"){
       
+      x.train.eval <- x.train
+      list.export[["x.train.eval"]] <- x.train.eval
       rf.fit.eval <- rf.fit
       list.export[["rf.fit.eval"]] <- rf.fit.eval
+      rf.response.train.eval <- rf.response.train
+      list.export[["rf.response.train.eval"]] <- rf.response.train.eval
       
-      x.train.df <- as.data.frame(x.train)
-      
-      predictor.rf.eval <- Predictor$new(
-        model = rf.fit.eval,
-        data = x.train.df,
-        y = rf.response.train,
-        predict.function = pred,
-        class = "classification"
-      )
-      
-      test <- data.frame(
-        feature = character(),
-        phi = numeric()
-      )
-      
-      # for(obs in 1:nrow(x.train.df)){
-      for(obs in 1:50){
-        
-        x.interest <- x.train.df[obs,]
-        temp <- Shapley$new(predictor.rf.eval, x.interest = x.interest)
-        
-        temp <- data.frame(
-          feature = temp$results$feature,
-          phi = abs(temp$results$phi)
-        )
-        
-        test <- rbind(test, temp)
-        
-        
-      }
-      
-      # x.interest <- x.train.df
+      # x.train.df <- as.data.frame(x.train)
       # 
-      # shapley.rf.eval <- Shapley$new(predictor.rf.eval, x.interest = x.interest)
+      # predictor.rf.eval <- Predictor$new(
+      #   model = rf.fit.eval,
+      #   data = x.train.df,
+      #   y = rf.response.train,
+      #   predict.function = pred,
+      #   class = "classification"
+      # )
+      # 
+      # # calculate shapley values for each observation
+      # for(obs in 1:nrow(x.train.df)){
+      # 
+      #   cat("\rcalculate shapley values for observation", obs, "of",
+      #       nrow(x.train.df), "observations")
+      #   flush.console()
+      # 
+      #   x.interest <- x.train.df[obs,]
+      #   temp <- Shapley$new(predictor.rf.eval, x.interest = x.interest)
+      # 
+      #   temp <- data.frame(
+      #     feature = temp$results$feature,
+      #     phi = temp$results$phi
+      #   )
+      # 
+      #   shapley.values <- rbind(shapley.values, temp)
+      # 
+      # }
+      # 
+      # # calculate shapley values as averages of absolute values of shapley values
+      # # of preductors in each observation
+      # shapley.values.raw <- shapley.values
+      # shapley.values$phi <- abs(shapley.values$phi)
+      # shapley.values <- aggregate(shapley.values$phi,
+      #                             by = list(shapley.values$feature),
+      #                             FUN = mean)
+      # 
+      # list.export[["shapley.values"]] <- shapley.values
+      # 
+      # 
+      # # calculate partail dependence
+      # partial.net_lending <- partial(rf.fit.eval, train = x.train.eval,
+      #                                pred.var = "net_lending", plot = F,
+      #                                type = "classification", which.class = 2)
+      # partial.ca_balance <- partial(rf.fit.eval, train = x.train.eval,
+      #                               pred.var = "ca_balance", plot = F,
+      #                               type = "classification", which.class = 2)
+      # 
+      # list.export[["partial.net_lending"]] <- partial.net_lending
+      # list.export[["partial.ca_balance"]]  <- partial.ca_balance
+      # 
+      # # calculate accumulated local effects
+      # ale.net_lending <- FeatureEffect$new(predictor.rf.eval,
+      #                                      feature = "net_lending")
+      # ale.ca_balance  <- FeatureEffect$new(predictor.rf.eval,
+      #                                      feature = "ca_balance")
+      # 
+      # list.export[["ale.net_lending"]] <- ale.net_lending
+      # list.export[["ale.ca_balance"]]  <- ale.ca_balance
+      
     }
     
   } # end of loop over dev.measure
@@ -498,6 +536,7 @@ for(i in 2007:max(data$year)){
 # =============================================================================.
 # 4. get relevant results and save rmd input ----
 # =============================================================================.
+cat("\nFinalize data and save some objects for RMD report...")
 
 # -----------------------------------------------------------------------------.
 # 4.1 calculate average prediction metrics ----
@@ -517,6 +556,77 @@ list.export[["results.avg"]] <- results.avg
 
 
 # -----------------------------------------------------------------------------.
-# 4.2 save relevant data for rmd report ----
+# 4.2 calculate interpretation metrics ----
+# -----------------------------------------------------------------------------.
+x.train.eval.df <- as.data.frame(x.train.eval)
+
+# generate predictor object
+predictor.rf.eval <- Predictor$new(
+  model = rf.fit.eval,
+  data = x.train.eval.df,
+  y = rf.response.train.eval,
+  predict.function = pred,
+  class = "classification"
+)
+
+# 4.2.1 shapley values --------------------------------------------------------.
+# calculate shapley values for each observation
+for(obs in 1:nrow(x.train.eval.df)){
+  
+  cat("\rcalculate shapley values for observation", obs, "of",
+      nrow(x.train.eval.df), "observations")
+  flush.console()
+  
+  x.interest <- x.train.eval.df[obs,]
+  temp <- Shapley$new(predictor.rf.eval, x.interest = x.interest)
+  
+  temp <- data.frame(
+    feature = temp$results$feature,
+    phi = temp$results$phi
+  )
+  
+  shapley.values <- rbind(shapley.values, temp)
+  
+}
+
+# calculate shapley values as averages of absolute values of shapley values
+# of preductors in each observation
+shapley.values.raw <- shapley.values
+shapley.values$phi <- abs(shapley.values$phi)
+shapley.values <- aggregate(shapley.values$phi,
+                            by = list(shapley.values$feature),
+                            FUN = mean)
+
+list.export[["shapley.values"]] <- shapley.values
+
+# 4.2.2 partial dependence ----------------------------------------------------.
+# calculate partial dependence
+partial.net_lending <- partial(rf.fit.eval, train = x.train.eval,
+                               pred.var = "net_lending", plot = F,
+                               type = "classification", which.class = 2)
+partial.ca_balance <- partial(rf.fit.eval, train = x.train.eval,
+                              pred.var = "ca_balance", plot = F,
+                              type = "classification", which.class = 2)
+
+list.export[["partial.net_lending"]] <- partial.net_lending
+list.export[["partial.ca_balance"]]  <- partial.ca_balance
+
+# 4.2.3 accumulated loal effects ----------------------------------------------.
+# calculate accumulated local effects
+ale.net_lending <- FeatureEffect$new(predictor.rf.eval,
+                                     feature = "net_lending")
+ale.ca_balance  <- FeatureEffect$new(predictor.rf.eval,
+                                     feature = "ca_balance")
+
+list.export[["ale.net_lending"]] <- ale.net_lending
+list.export[["ale.ca_balance"]]  <- ale.ca_balance
+
+# -----------------------------------------------------------------------------.
+# 4.3 save relevant data for rmd report ----
 # -----------------------------------------------------------------------------.
 save(list.export, file = "data/input.RData")
+
+save.image(file = "workspace_2022-05-01_12.12.RData")
+
+
+
