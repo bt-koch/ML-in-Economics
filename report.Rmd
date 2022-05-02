@@ -3,6 +3,10 @@ output:
   pdf_document:
     number_sections: true
 bibliography: tex/bibliography.bib
+header-includes:
+  - \usepackage{floatrow}
+  - \floatsetup{capposition=top}
+  - \usepackage{setspace}
 ---
 
 <!-- Setup -------------------------------------------------------------------->
@@ -16,7 +20,7 @@ library(kableExtra)
 library(randomForest)
 library(iml)
 
-knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(echo = FALSE, fig.align = "center")
 
 load("data/input.RData")
 varnames <- list.export[["varnames"]]
@@ -41,11 +45,12 @@ University of Bern}\\[1cm]
 \end{center}
 
 \newpage
+\thispagestyle{empty}
 \tableofcontents
 \newpage
 
 <!-- Report ------------------------------------------------------------------->
-
+\setcounter{page}{1}
 
 # Introduction
 
@@ -53,34 +58,72 @@ DEFINITION OF EWS. This paper aims to design an early warning system which signa
 increased risk of a fiscal stress event in the near future.
 
 
-
-
-
 test ob zitierung funktioniert @jarmulska2020.
 
 
-# Literature Review
+# Literature Review (include in introduction? or structure as subsection of intro)
 
+\newpage
 # Model Describtion
 
 ## Performance Metrics
 
+@jarmulska2020 uses sensitivity, specificity, their average as well as the area
+under receiver operating curve (AUROC) as measures to assess the effectiveness of
+the early warning models. Since sensitivity corresponds to the proportion of
+stress episodes correctly classified whereby specificity corresponds to the
+proportion of tranquil episodes correctly classified, these metrics are dependent
+on the threshold, which determines whether a period is classified as stress or
+tranquil episode [@jarmulska2020]. In this paper, this threshold is specified by
+maximizing the weighted sum of sensitivity and specificity. In contrast, the AUROC
+is a robust measure, as all possible thresholds are taken into account in their
+calculation. This measure represents the area under the receiver operating 
+curve, which displays the trade-off between the true positive rate (i.e. sensitivity)
+and the false positive rate (i.e. 1 - specificity). Theoretically, the AUROC can
+be between 0 and 1 (perfect classifier), whereby random guessing would result in
+to a value of 0.5 [@fawcett2006]. 
+
+
 ## Logit Model with LASSO penalisation
 
-@hastie2009
+@jarmulska2020 implemented two version of discrete dependent variable models
+(logit regression), first a standard logit model with ordinary least squares
+estimates and second a logit model with a least absolute shrinkage and selection
+operator (LASSO) penalization. These models are often used as the standard 
+econometric approach, which is why they are used as the benchmark in this study.
 
-\begin{equation}
-\hat{\beta}^{lasso} = \underset{\beta}{\text{argmin}} \sum^N_{i=1}(y_i - \beta_0 - \sum^p_{j=1}x_{ij}\beta_j)^2
-\; \; \; \; \text{subject to} \; \; \; \sum^p_{j=1}|\beta_j| \leq t
+Ordinary least squares estimates often have low bias but large variance, reducing
+prediction accuracy - the prediction accuracy can sometimes be improved by
+shrinking some coefficients towards zero to sacrifice bias in order to reduce
+variance of the predicted values and possibly improve overall prediction accuracy
+[@tibshirani1996]. To do so, LASSO penalization as proposed in @tibshirani1996
+can be applied. Because of this characteristics, only the logit LASSO model is
+considered in this replication.
+
+Following @hastie2009, the LASSO problem in the Lagrangian form is given as follows:
+
+\begin{equation} \label{eq:lasso}
+\hat{\beta}^{lasso} = \underset{\beta}{\text{argmin}} \left\{
+\frac{1}{2} \sum^N_{i=1}(y_i - \beta_0 - \sum^p_{j=1}x_{ij}\beta_j)^2
++ \lambda \sum^p_{j=1}|\beta_j| \right\}
 \end{equation}
 
-Lagrangian form
-
-\begin{equation}
-\hat{\beta}^{lasso} = \underset{\beta}{\text{argmin}} \left\{ \frac{1}{2} \sum^N_{i=1}(y_i - \beta_0 - \sum^p_{j=1}x_{ij}\beta_j)^2 + \lambda \sum^p_{j=1}|\beta_j| \right\}
-\end{equation}
+whereby $\lambda$ corresponds to the penalization parameter. As can be seen in
+Equation \eqref{eq:lasso}, the higher $\lambda$, the higher the number of
+coefficients shrunk to zero. Here, $\lambda$ is chosen by 5-fold cross-validation,
+maximizing the AUROC.
 
 ## Random Forest
+
+As a second method of building an early warning system, @jarmulska2020 applied
+classification and regression trees (CART) for binary classification and their
+ensemble into random forests.
+
+zuerst ganz kurz definition cart (ev. mit anderer quelle als jarmulska)
+
+dann ganz kurs warum cart zu rf
+
+dann ganz kurz rf
 
 Gini index
 
@@ -88,16 +131,115 @@ Gini index
 g(w) = \sum_{k \neq j}p_{wk}p_{wj} = \sum_k p_{wk}(1-p_{wk})
 \end{equation}
 
+\newpage
 # Data Describtion
 
 ## Dependent Variable
 
-definition of a fiscal stress event
+definition of a fiscal stress event follows @dobrescu2011 siehe die tabelle
 
 empirical/historical data about fiscal stress events
 
+```{r stress.distr, fig.height=3, fig.cap="Distribution of Stress Periods"}
+data <- list.export[["data"]]
+dt <- data
+
+
+dt$year <- dt$year+2
+dt$crisis_next_period <- as.numeric(as.character(dt$crisis_next_period))
+
+
+dt_developing <- dt[dt$developed == 0,]
+dt_developed  <- dt[dt$developed == 1,]
+
+dt_developing <- dt_developing[, names(dt_developing) %in% c("year", "crisis_next_period")]
+dt_developing <- aggregate(dt_developing$crisis_next_period,
+                           by = list(dt_developing$year),
+                           FUN = sum)
+colnames(dt_developing) <- c("year", "sum_developing")
+
+dt_developed <- dt_developed[, names(dt_developed) %in% c("year", "crisis_next_period")]
+dt_developed <- aggregate(dt_developed$crisis_next_period,
+                           by = list(dt_developed$year),
+                           FUN = sum)
+
+colnames(dt_developed) <- c("year", "sum_developed")
+
+dt <- merge(x = dt_developing, y = dt_developed,
+            by = "year",
+            all = T)
+
+par(las = 1, cex = 0.6)
+barplot(rbind(dt$sum_developing, dt$sum_developed), beside = T,
+        names.arg = dt$year, las = 2, col = c("gray30", "gray90"))
+legend("topleft",
+       legend = c("developing countries", "developed countries"),
+       fill = c("gray30", "gray90"))
+
+
+```
+
 ## Explanatory Variables
 
+```{r means.table}
+# load relevant data
+means.table <- list.export[["means.table"]]
+
+# round numeric columns
+num.cols <- sapply(means.table, mode) == "numeric"
+means.table[num.cols] <- round(means.table[num.cols], 2)
+
+# define categories
+macro_globecon <- c("interest_rate_US", "dyn_GDP_US", "dyn_gdp_china", "oil_yoy",
+                    "VIX", "dyn_gdp", "GDP_per_cap")
+comp_domdem <- c("overvaluation", "ca_balance", "dyn_export_share", "dyn_fix_cap_form",
+                 "cpi", "dyn_consum")
+fin <- c("dyn_fx_rate", "diff_priv_credit_gdp")
+fisc <- c("net_lending", "public_debt", "interest_on_debt")
+labor <- c("diff_unempl", "dyn_prod_dol")
+
+# add categories
+means.table$category <- NA
+means.table$category <- ifelse(means.table$variable %in% macro_globecon,
+                               "Macroeconomic and global economy",
+                               means.table$category)
+means.table$category <- ifelse(means.table$variable %in% comp_domdem,
+                               "Competitiveness and domestic demand",
+                               means.table$category)
+means.table$category <- ifelse(means.table$variable %in% fin,
+                               "Financial",
+                               means.table$category)
+means.table$category <- ifelse(means.table$variable %in% fisc,
+                               "Fiscal",
+                               means.table$category)
+means.table$category <- ifelse(means.table$variable %in% labor,
+                               "Labor market",
+                               means.table$category)
+
+# add variable names
+means.table <- merge(x = varnames, y = means.table,
+                     by = "variable",
+                     all = T)
+means.table$variable <- NULL
+
+# recode significance
+means.table$significant <- ifelse(means.table$significant == T, "yes", "no")
+
+# rename columns
+names(means.table)[names(means.table) == "name"] <- "Variable"
+names(means.table)[names(means.table) == "all_periods"] <- "All periods"
+names(means.table)[names(means.table) == "tranq_periods"] <- "Tranquil periods"
+names(means.table)[names(means.table) == "stress_periods"] <- "Stress periods"
+names(means.table)[names(means.table) == "p_value"] <- "P-value"
+names(means.table)[names(means.table) == "significant"] <- "Significance"
+
+# make table
+kbl(means.table[, -which(names(means.table) == "category")], booktabs = T,
+    caption = "Means of Explanatory Variables", align = c("l", rep("r", 5))) %>%
+  pack_rows(index = table(means.table$category))
+```
+
+\newpage
 # Empirical Results
 
 ## Performance
@@ -122,15 +264,15 @@ dt[colnames(dt) != "model"] <- apply(dt[colnames(dt) != "model"], 2, function(x)
 \begin{tabular}[c]{@{}l@{}}Average\\ \phantom{Average} \end{tabular}                                      & `r dt[dt$model == "logit.lasso.DUMMY",]$avg`      & `r dt[dt$model == "logit.lasso.GDP",]$avg`      & `r dt[dt$model == "rf.DUMMY",]$avg`      & `r dt[dt$model == "rf.GDP",]$avg`      \\ \hline
 \begin{tabular}[c]{@{}l@{}}AUROC\\ \phantom{AUROC} \end{tabular}                                        & `r dt[dt$model == "logit.lasso.DUMMY",]$auc`      & `r dt[dt$model == "logit.lasso.GDP",]$auc`      & `r dt[dt$model == "rf.DUMMY",]$auc`      & `r dt[dt$model == "rf.GDP",]$auc`      \\ \hline
 \end{tabular}
-\caption{\label{tab:avg-pred-accur}Average prediction accuracy of early warning models for years 2009-2018 (all observations used)}
+\caption{\label{tab:avg-pred-accur}Average prediction accuracy of early warning models for years 2009-2018}
 \end{table}
 
 
-## Interpretability
+## Interpretability of Random Forest Algorithm
 
 ### Variable Importance and Shapley Values
 
-```{r rf.VI.SV, fig.cap="", fig.height=3}
+```{r rf.VI.SV, fig.cap="Variable Importance and Shapley Values of Predictors used", fig.height=3}
 # prepare data for plot for variable importance
 rf.fit.eval <- list.export[["rf.fit.eval"]]
 
@@ -160,7 +302,7 @@ shapley.values <- shapley.values[order(shapley.values$x, decreasing = T), c(1:4)
 labs.shapley <- rev(shapley.values$name)
 
 # draw plot
-par(mar = c(5.1, 10.5, 2.1, 0.5), mfrow = c(1,2), las=1, cex = 0.75, cex.axis = 0.75)
+par(mar = c(5.1, 10.5, 2.1, 0.5), mfrow = c(1,2), las=1, cex = 0.75, cex.axis = 0.75, mgp = c(1.75, 0.75, 0))
 
 # plot 1: variable importance
 plot(x = varimp$MeanDecreaseGini, y = varimp$yaxis,
@@ -179,29 +321,51 @@ axis(side = 2, at = 1:20, labels = labs.shapley)
 
 ### Partial dependence plots and Accumulated local effects plots
 
-```{r}
+```{r rf.pdp.alep, fig.cap="Partial Dependence and Accumulated Local Effects Plots"}
 
-# prepare partial dependence plots
+# load data for partial dependence plots
 partial.ca_balance  <- list.export[["partial.ca_balance"]]
 partial.net_lending <- list.export[["partial.net_lending"]]
 
-p1 <- plot(x = partial.ca_balance$ca_balance, y = partial.ca_balance$yhat,
+# load data for accumulated local effects plots
+ale.ca_balance  <- list.export[["ale.ca_balance"]]
+ale.net_lending <- list.export[["ale.net_lending"]]
+
+# prepare plot
+# x.train.eval.df <- list.export[["x.train.eval.df"]]
+x.train.eval.df <- as.data.frame(list.export[["x.train.eval"]])
+par(mfrow = c(2,2), mar = c(5.1, 4.1, 1, 2.1), cex = 0.65, cex.axis = 0.75, las = 1, mgp = c(2.25, 0.55, 0))
+
+# plot upper left: pdp for ca balance
+plot(x = partial.ca_balance$ca_balance, y = partial.ca_balance$yhat,
            type = "l", xlab = "Current account balance",
            ylab = "Predicted probability of stress")
-p2 <- plot(x = partial.net_lending$net_lending, y = partial.net_lending$yhat,
+rug(x.train.eval.df$ca_balance, ticksize = 0.015)
+
+# plot upper right: ace plot for ca balance
+plot(x = ale.ca_balance$results$ca_balance, y = ale.ca_balance$results$.value,
+           type = "l", xlab = "Current account balance",
+           ylab = "Predicted probability of stress")
+rug(x.train.eval.df$ca_balance, ticksize = 0.015)
+
+# plot lower left: pdp for net lending
+plot(x = partial.net_lending$net_lending, y = partial.net_lending$yhat,
            type = "l", xlab = "Net lending",
            ylab = "Predicted probability of stress")
+rug(x.train.eval.df$net_lending, ticksize = 0.015)
 
-par(mfrow = c(1,2))
-p1
-p2
-
-
+# plot lower right: ace plot net lending 
+plot(x = ale.net_lending$results$net_lending, y = ale.net_lending$results$.value,
+           type = "l", xlab = "Net lending",
+           ylab = "Predicted probability of stress")
+rug(x.train.eval.df$net_lending, ticksize = 0.015)
 ```
 
+\newpage
 # Conclusion
 
 <!-- References --------------------------------------------------------------->
 \newpage
 # References
+\onehalfspacing
 \bibliography{tex/bibliography.bib}

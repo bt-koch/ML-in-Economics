@@ -120,6 +120,8 @@ data$crisis_first_year <- factor(data$crisis_first_year, levels = c(0,1), labels
 # rename column
 names(data)[names(data) == ""] <- "country.id"
 
+list.export[["data"]] <- data
+
 # read csv for variable names
 varnames <- read.csv("data/varnames.csv", sep = ";")
 
@@ -558,7 +560,9 @@ list.export[["results.avg"]] <- results.avg
 # -----------------------------------------------------------------------------.
 # 4.2 calculate interpretation metrics ----
 # -----------------------------------------------------------------------------.
+
 x.train.eval.df <- as.data.frame(x.train.eval)
+list.export[["x.train.eval.df"]] <- x.train.eval.df
 
 # generate predictor object
 predictor.rf.eval <- Predictor$new(
