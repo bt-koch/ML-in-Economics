@@ -2,11 +2,16 @@
 output:
   pdf_document:
     number_sections: true
+    # template: tex/template.tex
 bibliography: tex/bibliography.bib
+biblio-style: text/econometrica.bst
 header-includes:
   - \usepackage{floatrow}
   - \floatsetup{capposition=top}
   - \usepackage{setspace}
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
 
 <!-- Setup -------------------------------------------------------------------->
@@ -27,6 +32,8 @@ varnames <- list.export[["varnames"]]
 ```
 
 <!-- Title Page + TOC --------------------------------------------------------->
+
+```{=tex}
 \newpage
 \vspace*{4cm}
 \begin{center}
@@ -36,88 +43,126 @@ varnames <- list.export[["varnames"]]
 \begin{center}
 \thispagestyle{empty}
 {\LARGE \bf replication paper}\\[1.5cm]
-{\Huge Early Warning System of Fiscal Stress}\\[1.5cm]
-{\bf \Large comparing the traditional logistic regression approach versus a random forest algorithm}\\[2cm]
+{\Huge Early Warning System for Fiscal Stress}\\[1.5cm]
+{\bf \Large comparing the traditional logistic regression approach \\ with random forest}\\[2cm]
 {\bf \large Department of Economics\\
 University of Bern}\\[1cm]
 {\Large Spring Semester 2022}\\[1.5cm]
 {\large submitted by Bela Tim Koch} \\[2.5cm]
 \end{center}
-
+```
+```{=tex}
 \newpage
 \thispagestyle{empty}
 \tableofcontents
 \newpage
+```
 
 <!-- Report ------------------------------------------------------------------->
+<!--  1 Title Page
+      2 TOC
+      3 Introduction + Literature Review
+      4-5.5 Model Description
+      5.5-7 Data Description
+      8-9 Results
+      10 Conclusion
+-->
+
+
 \setcounter{page}{1}
+\onehalfspace
 
-# Introduction
+# Introduction and Literature Review
 
-DEFINITION OF EWS. This paper aims to design an early warning system which signals
-increased risk of a fiscal stress event in the near future.
+Since the latest Great Recession with its corresponding deterioration of public
+finances, the monitoring and prevention of fiscal crises has become increasingly
+prominent in the political debate, leading to an increasing demand for the
+development of reliable and early indicators that signal possible fiscal stress.
+In order to be able to assess countries' vulnerability to fiscal distress ex-ante,
+the literature is increasingly devoted to the development of early warning
+systems for fiscal stress, which build on early warning systems for banking and
+currency crises [@honda2022]. The standard tool used in the literature for early
+warning systems are the signalling approach as well as discrete dependent variable
+models, such as logistic regression [@jarmulska2020]. However, as an alternative
+to the traditional methods, early warning models based on machine learning
+techniques are proposed, claiming a possible improvement of prediction accuracy
+[@beutel2019].
 
+<!-- HIER EIN PAAR BEISPIEL PAPERS AUFFÜHREN. -->
 
-test ob zitierung funktioniert @jarmulska2020.
+This paper aims to replicate some of the work done by @jarmulska2020. Particular
+emphasis is placed on the comparison of the traditional method, i.e. a logit model
+with a least absolute shrinkage and selection operator, and a novel approach of
+using an implementation of a random forest algorithm. Since machine learning
+algorithms such as the random forest is often accused of a lack of interpretability,
+ways of interpreting the developed model are presented.
 
-
-# Literature Review (include in introduction? or structure as subsection of intro)
 
 \newpage
+
 # Model Describtion
 
 ## Performance Metrics
 
-@jarmulska2020 uses sensitivity, specificity, their average as well as the area
-under receiver operating curve (AUROC) as measures to assess the effectiveness of
-the early warning models. Since sensitivity corresponds to the proportion of
-stress episodes correctly classified whereby specificity corresponds to the
-proportion of tranquil episodes correctly classified, these metrics are dependent
-on the threshold, which determines whether a period is classified as stress or
-tranquil episode [@jarmulska2020]. In this paper, this threshold is specified by
-maximizing the weighted sum of sensitivity and specificity. In contrast, the AUROC
-is a robust measure, as all possible thresholds are taken into account in their
-calculation. This measure represents the area under the receiver operating 
-curve, which displays the trade-off between the true positive rate (i.e. sensitivity)
-and the false positive rate (i.e. 1 - specificity). Theoretically, the AUROC can
-be between 0 and 1 (perfect classifier), whereby random guessing would result in
-to a value of 0.5 [@fawcett2006]. 
-
+@jarmulska2020 uses sensitivity, specificity, their average as well as
+the area under receiver operating curve (AUROC) as measures to assess
+the effectiveness of the early warning models. Since sensitivity
+corresponds to the proportion of stress episodes correctly classified
+whereby specificity corresponds to the proportion of tranquil episodes
+correctly classified, these metrics are dependent on the threshold,
+which determines whether a period is classified as stress or tranquil
+episode [@jarmulska2020]. In this paper, this threshold is specified by
+maximizing the weighted sum of sensitivity and specificity. In contrast,
+the AUROC is a robust measure, as all possible thresholds are taken into
+account in their calculation. This measure represents the area under the
+receiver operating curve, which displays the trade-off between the true
+positive rate (i.e. sensitivity) and the false positive rate (i.e. 1 -
+specificity). Theoretically, the AUROC can be between 0 and 1 (perfect
+classifier), whereby random guessing would result in to a value of 0.5
+[@fawcett2006].
 
 ## Logit Model with LASSO penalisation
 
-@jarmulska2020 implemented two version of discrete dependent variable models
-(logit regression), first a standard logit model with ordinary least squares
-estimates and second a logit model with a least absolute shrinkage and selection
-operator (LASSO) penalization. These models are often used as the standard 
-econometric approach, which is why they are used as the benchmark in this study.
+@jarmulska2020 implemented two version of discrete dependent variable
+models (logit regression), first a standard logit model with ordinary
+least squares estimates and second a logit model with a least absolute
+shrinkage and selection operator (LASSO) penalization. These models are
+often used as the standard econometric approach, which is why they are
+used as the benchmark in this study.
 
-Ordinary least squares estimates often have low bias but large variance, reducing
-prediction accuracy - the prediction accuracy can sometimes be improved by
-shrinking some coefficients towards zero to sacrifice bias in order to reduce
-variance of the predicted values and possibly improve overall prediction accuracy
-[@tibshirani1996]. To do so, LASSO penalization as proposed in @tibshirani1996
-can be applied. Because of this characteristics, only the logit LASSO model is
-considered in this replication.
+Ordinary least squares estimates often have low bias but large variance,
+reducing prediction accuracy - the prediction accuracy can sometimes be
+improved by shrinking some coefficients towards zero to sacrifice bias
+in order to reduce variance of the predicted values and possibly improve
+overall prediction accuracy [@tibshirani1996]. To do so, LASSO
+penalization as proposed in @tibshirani1996 can be applied. Because of
+this characteristics, only the logit LASSO model is considered in this
+replication.
 
-Following @hastie2009, the LASSO problem in the Lagrangian form is given as follows:
+Following @hastie2009, the LASSO problem in the Lagrangian form is given
+as follows:
 
+```{=tex}
 \begin{equation} \label{eq:lasso}
 \hat{\beta}^{lasso} = \underset{\beta}{\text{argmin}} \left\{
 \frac{1}{2} \sum^N_{i=1}(y_i - \beta_0 - \sum^p_{j=1}x_{ij}\beta_j)^2
 + \lambda \sum^p_{j=1}|\beta_j| \right\}
 \end{equation}
-
-whereby $\lambda$ corresponds to the penalization parameter. As can be seen in
-Equation \eqref{eq:lasso}, the higher $\lambda$, the higher the number of
-coefficients shrunk to zero. Here, $\lambda$ is chosen by 5-fold cross-validation,
-maximizing the AUROC.
+```
+whereby $\lambda$ corresponds to the penalization parameter. As can be
+seen in Equation \eqref{eq:lasso}, the higher $\lambda$, the higher the
+number of coefficients shrunk to zero. Here, $\lambda$ is chosen by
+5-fold cross-validation, maximizing the AUROC.
 
 ## Random Forest
 
-As a second method of building an early warning system, @jarmulska2020 applied
-classification and regression trees (CART) for binary classification and their
-ensemble into random forests.
+<!-- As a second method of building an early warning system, @jarmulska2020 applied -->
+
+<!-- classification and regression trees (CART) for binary classification and their -->
+
+<!-- ensemble into random forests.  -->
+
+Building upon decision trees, which divide the predictor space into
 
 zuerst ganz kurz definition cart (ev. mit anderer quelle als jarmulska)
 
@@ -127,16 +172,19 @@ dann ganz kurz rf
 
 Gini index
 
+```{=tex}
 \begin{equation}
 g(w) = \sum_{k \neq j}p_{wk}p_{wj} = \sum_k p_{wk}(1-p_{wk})
 \end{equation}
-
+```
 \newpage
+
 # Data Describtion
 
 ## Dependent Variable
 
-definition of a fiscal stress event follows @dobrescu2011 siehe die tabelle
+definition of a fiscal stress event follows @dobrescu2011 siehe die
+tabelle
 
 empirical/historical data about fiscal stress events
 
@@ -236,10 +284,12 @@ names(means.table)[names(means.table) == "significant"] <- "Significance"
 # make table
 kbl(means.table[, -which(names(means.table) == "category")], booktabs = T,
     caption = "Means of Explanatory Variables", align = c("l", rep("r", 5))) %>%
-  pack_rows(index = table(means.table$category))
+  pack_rows(index = table(means.table$category)) %>%
+  kable_styling(latex_options="scale_down")
 ```
 
 \newpage
+
 # Empirical Results
 
 ## Performance
@@ -253,7 +303,7 @@ dt[!colnames(dt) %in% c("model", "auc")] <- apply(dt[!colnames(dt) %in% c("model
 dt[colnames(dt) != "model"] <- apply(dt[colnames(dt) != "model"], 2, function(x) round(x, 2))
 ```
 
-
+```{=tex}
 \begin{table}[H]
 \centering
 \begin{tabular}{@{\extracolsep{4pt}}lrrrr@{}}
@@ -266,8 +316,7 @@ dt[colnames(dt) != "model"] <- apply(dt[colnames(dt) != "model"], 2, function(x)
 \end{tabular}
 \caption{\label{tab:avg-pred-accur}Average prediction accuracy of early warning models for years 2009-2018}
 \end{table}
-
-
+```
 ## Interpretability of Random Forest Algorithm
 
 ### Variable Importance and Shapley Values
@@ -318,7 +367,6 @@ abline(h = 1:20, lty = 3)
 axis(side = 2, at = 1:20, labels = labs.shapley)
 ```
 
-
 ### Partial dependence plots and Accumulated local effects plots
 
 ```{r rf.pdp.alep, fig.cap="Partial Dependence and Accumulated Local Effects Plots"}
@@ -362,10 +410,19 @@ rug(x.train.eval.df$net_lending, ticksize = 0.015)
 ```
 
 \newpage
+
 # Conclusion
 
 <!-- References --------------------------------------------------------------->
+
 \newpage
+
 # References
-\onehalfspacing
+
+The code and data used for this project can be found in the
+corresponding GitHub-repository:
+\mbox{\texttt{\url{https://github.com/bt-koch/ML-in-Economics}}}.
+
+\vspace{1cm}
+
 \bibliography{tex/bibliography.bib}

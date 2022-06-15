@@ -22,6 +22,8 @@ stress episode coded as 1).
 The data corresponds to the data source provided by the author of the original
 paper and was downloaded from [figshare.com](https://figshare.com/articles/dataset/dataframe_csv/11593899).
 
+to do - describe type of var in paper (binary etc)
+
 
 
 ## Models

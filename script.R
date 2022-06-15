@@ -575,7 +575,8 @@ predictor.rf.eval <- Predictor$new(
 
 # 4.2.1 shapley values --------------------------------------------------------.
 # calculate shapley values for each observation
-for(obs in 1:nrow(x.train.eval.df)){
+# for(obs in 1:nrow(x.train.eval.df)){
+for(obs in 1:10){
   
   cat("\rcalculate shapley values for observation", obs, "of",
       nrow(x.train.eval.df), "observations")
@@ -604,6 +605,7 @@ shapley.values <- aggregate(shapley.values$phi,
 list.export[["shapley.values"]] <- shapley.values
 
 # 4.2.2 partial dependence ----------------------------------------------------.
+cat("\ncalculate partial dependence")
 # calculate partial dependence
 partial.net_lending <- partial(rf.fit.eval, train = x.train.eval,
                                pred.var = "net_lending", plot = F,
@@ -612,10 +614,15 @@ partial.ca_balance <- partial(rf.fit.eval, train = x.train.eval,
                               pred.var = "ca_balance", plot = F,
                               type = "classification", which.class = 2)
 
+# test
+test <- partial(rf.fit.eval, train = x.train.eval,
+                               pred.var = "net_lending", plot = T,
+                               type = "classification", which.class = 2)
+
 list.export[["partial.net_lending"]] <- partial.net_lending
 list.export[["partial.ca_balance"]]  <- partial.ca_balance
 
-# 4.2.3 accumulated loal effects ----------------------------------------------.
+# 4.2.3 accumulated local effects ---------------------------------------------.
 # calculate accumulated local effects
 ale.net_lending <- FeatureEffect$new(predictor.rf.eval,
                                      feature = "net_lending")
@@ -633,4 +640,6 @@ save(list.export, file = "data/input.RData")
 save.image(file = "workspace_2022-05-01_12.12.RData")
 
 
+cat("\nRuntime:")
+Sys.time() - start_time
 
