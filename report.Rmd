@@ -2,6 +2,7 @@
 output:
   pdf_document:
     number_sections: true
+indent: true
     # template: tex/template.tex
 bibliography: tex/bibliography.bib
 biblio-style: text/econometrica.bst
@@ -9,6 +10,7 @@ header-includes:
   - \usepackage{floatrow}
   - \floatsetup{capposition=top}
   - \usepackage{setspace}
+  # - \usepackage{indentfirst}
 editor_options: 
   markdown: 
     wrap: 72
@@ -57,8 +59,9 @@ University of Bern}\\[1cm]
 \tableofcontents
 \newpage
 ```
-
 <!-- Report ------------------------------------------------------------------->
+
+```{=html}
 <!--  1 Title Page
       2 TOC
       3 Introduction + Literature Review
@@ -67,36 +70,59 @@ University of Bern}\\[1cm]
       8-9 Results
       10 Conclusion
 -->
-
-
+```
+```{=tex}
 \setcounter{page}{1}
 \onehalfspace
-
+```
 # Introduction and Literature Review
 
-Since the latest Great Recession with its corresponding deterioration of public
-finances, the monitoring and prevention of fiscal crises has become increasingly
-prominent in the political debate, leading to an increasing demand for the
-development of reliable and early indicators that signal possible fiscal stress.
-In order to be able to assess countries' vulnerability to fiscal distress ex-ante,
-the literature is increasingly devoted to the development of early warning
-systems for fiscal stress, which build on early warning systems for banking and
-currency crises [@honda2022]. The standard tool used in the literature for early
-warning systems are the signalling approach as well as discrete dependent variable
-models, such as logistic regression [@jarmulska2020]. However, as an alternative
-to the traditional methods, early warning models based on machine learning
-techniques are proposed, claiming a possible improvement of prediction accuracy
-[@beutel2019].
+Since the latest Great Recession with its corresponding deterioration of
+public finances, the monitoring and prevention of fiscal crises has
+become increasingly prominent in the political debate, leading to an
+increasing demand for the development of reliable and early indicators
+that signal possible fiscal stress. In order to be able to assess
+countries' vulnerability to fiscal distress ex-ante, the literature is
+increasingly devoted to the development of early warning systems for
+fiscal stress, which build on early warning systems for banking and
+currency crises [@honda2022]. The standard tool used in the literature
+for early warning systems are the signalling approach as well as
+discrete dependent variable models, such as logistic regression
+[@jarmulska2020].
 
-<!-- HIER EIN PAAR BEISPIEL PAPERS AUFFÜHREN. -->
+As an alternative to the traditional methods, early warning models based
+on machine learning techniques are proposed, claiming a possible
+improvement of prediction accuracy [@beutel2019]. As an example, when
+predicting the build-up of banking crises, the early warning system
+developed by @casabianca2019 which builds upon a supervised machine
+learning algorithm, i.e. Adaptive Boosting, outperforms the traditional
+approach of using a logit model. Another example which shows that using
+machine learning could drastically improve prediction accuracy is the
+early warning system developed by @samitas2020, which reaches an
+accuracy of 98.8% when predicting the risk of contagion inside a
+financial network using a quadratic support vector machine.
 
-This paper aims to replicate some of the work done by @jarmulska2020. Particular
-emphasis is placed on the comparison of the traditional method, i.e. a logit model
-with a least absolute shrinkage and selection operator, and a novel approach of
-using an implementation of a random forest algorithm. Since machine learning
-algorithms such as the random forest is often accused of a lack of interpretability,
-ways of interpreting the developed model are presented.
+However, a disadvantage many of these machine learning methods compared
+to more traditional approaches is the difficulty of understanding how a
+result was obtained and are therefore often referred to as a black box
+[@ghoddusi2019]. Consequently, the researcher is confronted with a
+trade-off between prediction or interpretation. @ghoddusi2019 argue,
+that emphasis should be in interpretation for scientific research or
+policy decisions, since understanding the relationship and behavior
+among different variables is more important than prediction accuracy. In
+contrast, more emphasis is to be placed on prediction accuracy in
+specific industrial applications.
 
+This paper aims to replicate some of the work done by @jarmulska2020.
+Particular emphasis is placed on the comparison of the traditional
+method, i.e. a logit model with a least absolute shrinkage and selection
+operator, and a model based on machine learning, i.e. an implementation
+of the random forest algorithm. As the results are often criticized for
+being difficult to interpret, ways of interpreting the developed early
+warning model based on random forest are presented.
+
+*to do: noch ein paar beispielpapers hinzufügen also literature review
+ausbauen*
 
 \newpage
 
@@ -149,34 +175,46 @@ as follows:
 + \lambda \sum^p_{j=1}|\beta_j| \right\}
 \end{equation}
 ```
-whereby $\lambda$ corresponds to the penalization parameter. As can be
-seen in Equation \eqref{eq:lasso}, the higher $\lambda$, the higher the
-number of coefficients shrunk to zero. Here, $\lambda$ is chosen by
-5-fold cross-validation, maximizing the AUROC.
+\noindent whereby $\lambda$ corresponds to the penalization parameter.
+As can be seen in Equation \eqref{eq:lasso}, the higher $\lambda$, the
+higher the number of coefficients shrunk to zero. Here, $\lambda$ is
+chosen by 5-fold cross-validation, maximizing the AUROC.
 
 ## Random Forest
 
-<!-- As a second method of building an early warning system, @jarmulska2020 applied -->
-
-<!-- classification and regression trees (CART) for binary classification and their -->
-
-<!-- ensemble into random forests.  -->
-
-Building upon decision trees, which divide the predictor space into
-
-zuerst ganz kurz definition cart (ev. mit anderer quelle als jarmulska)
-
-dann ganz kurs warum cart zu rf
-
-dann ganz kurz rf
-
-Gini index
+As an alternative to the logit model, @jarmulska2020 applied the random
+forest algorithm following @breiman2001 as an ensemble of multiple
+classification and regression trees for binary classification. A single
+tree divides the predictor space into distinct and non-overlapping
+regions, whereby an observation is classified depending on the region it
+falls into, i.e. at the terminal node. Each non-terminal node
+corresponds to a question with a binary response, what determines the
+structure of the tree. Since each terminal node assigns the same class
+to all observations within this node, minimizing the classification
+error at the level of the terminal nodes results in a minimization of
+the tree's overall classification error [@jarmulska2020]. To measure the
+precision of the fit, the Gini Index, which is used as a loss function
+in classification and regression trees, can be utilised
+[@jarmulska2020]:
 
 ```{=tex}
 \begin{equation}
 g(w) = \sum_{k \neq j}p_{wk}p_{wj} = \sum_k p_{wk}(1-p_{wk})
 \end{equation}
 ```
+\noindent whereby $p_{wj}$ corresponds to the probability distribution
+of class $j$ in node $w$.
+
+However, such decision trees might suffer from overfitting, what can be
+counteracted by bootstrapping the training set and averaging all the
+predictions [@james2013]. If these so called bagged trees are all
+influenced by some strong predictors, the single trees might be
+correlated resulting again in overfitting. To decorrelate the single
+trees, the non-terminal nodes can be forced to consider only a subset of
+the predictors, increasing the difference between the single trees,
+through which the overfitment problem can be reduced [@james2013]. This
+ensemble method corresponds to the random forest algorithm.
+
 \newpage
 
 # Data Describtion
