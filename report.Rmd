@@ -124,7 +124,7 @@ warning model based on random forest are presented.
 *to do: noch ein paar beispielpapers hinzufügen also literature review
 ausbauen*
 
-\newpage
+<!-- \newpage -->
 
 # Model Describtion
 
@@ -215,16 +215,20 @@ the predictors, increasing the difference between the single trees,
 through which the overfitment problem can be reduced [@james2013]. This
 ensemble method corresponds to the random forest algorithm.
 
-\newpage
+<!-- \newpage -->
 
 # Data Describtion
 
 ## Dependent Variable
 
-definition of a fiscal stress event follows @dobrescu2011 siehe die
-tabelle
+The binary dependent variable to be predicted follows the definition in @dobrescu2011 
+takes the value of 1 in the case of a fiscal stress event and 0 otherwise.
+According to the definition provided by @dobrescu2011, an economy faces a fiscal
+stress event, if at least one of the following four conditions are fulfilled:
+(1) the economy fails to service debt as payments come due as well as if debt
+exchanges are distressed (2) ... dobrescu weiterführen
 
-empirical/historical data about fiscal stress events
+
 
 ```{r stress.distr, fig.height=3, fig.cap="Distribution of Stress Periods"}
 data <- list.export[["data"]]
@@ -326,7 +330,7 @@ kbl(means.table[, -which(names(means.table) == "category")], booktabs = T,
   kable_styling(latex_options="scale_down")
 ```
 
-\newpage
+<!-- \newpage -->
 
 # Empirical Results
 
@@ -447,7 +451,7 @@ plot(x = ale.net_lending$results$net_lending, y = ale.net_lending$results$.value
 rug(x.train.eval.df$net_lending, ticksize = 0.015)
 ```
 
-\newpage
+<!-- \newpage -->
 
 # Conclusion
 
