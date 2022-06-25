@@ -1,7 +1,8 @@
 ---
 output:
-  pdf_document:
+  bookdown::pdf_document2:
     number_sections: true
+    toc: false
 indent: true
     # template: tex/template.tex
 bibliography: tex/bibliography.bib
@@ -9,8 +10,9 @@ biblio-style: text/econometrica.bst
 header-includes:
   - \usepackage{floatrow}
   - \floatsetup{capposition=top}
+  - \floatplacement{figure}{!ht}
+  - \floatplacement{table}{!ht}
   - \usepackage{setspace}
-  # - \usepackage{indentfirst}
 editor_options: 
   markdown: 
     wrap: 72
@@ -19,6 +21,7 @@ editor_options:
 <!-- Setup -------------------------------------------------------------------->
 
 ```{r setup, include=FALSE}
+rm(list=ls()); gc()
 if(!require(kableExtra)) install.packages("kableExtra")
 if(!require(randomForest)) install.packages("randomForest")
 if(!require(iml)) install.packages("iml")
@@ -31,13 +34,14 @@ knitr::opts_chunk$set(echo = FALSE, fig.align = "center")
 
 load("data/input.RData")
 varnames <- list.export[["varnames"]]
+data <- list.export[["data"]]
 ```
 
 <!-- Title Page + TOC --------------------------------------------------------->
 
 ```{=tex}
 \newpage
-\vspace*{4cm}
+\vspace*{3.5cm}
 \begin{center}
 {\Large Machine Learning in Economics \\ (458657)}
 \end{center}
@@ -59,18 +63,8 @@ University of Bern}\\[1cm]
 \tableofcontents
 \newpage
 ```
-<!-- Report ------------------------------------------------------------------->
 
-```{=html}
-<!--  1 Title Page
-      2 TOC
-      3 Introduction + Literature Review
-      4-5.5 Model Description
-      5.5-7 Data Description
-      8-9 Results
-      10 Conclusion
--->
-```
+<!-- Report ------------------------------------------------------------------->
 ```{=tex}
 \setcounter{page}{1}
 \onehalfspace
@@ -222,15 +216,29 @@ ensemble method corresponds to the random forest algorithm.
 ## Dependent Variable
 
 The binary dependent variable to be predicted follows the definition in @dobrescu2011 
-takes the value of 1 in the case of a fiscal stress event and 0 otherwise.
-According to the definition provided by @dobrescu2011, an economy faces a fiscal
-stress event, if at least one of the following four conditions are fulfilled:
-(1) the economy fails to service debt as payments come due as well as if debt
-exchanges are distressed (2) ... dobrescu weiterführen
+takes the value of 1 in the case of a fiscal stress event in the next period
+and 0 otherwise. According to the definition provided by @dobrescu2011, an economy
+faces a fiscal stress event, if at least one of the following four conditions are
+fulfilled: (1) the economy fails to service debt as payments come due as well as
+if debt exchanges are distressed (2) the economy receives a large support program
+by the International Monetary Fund (3) hyperinflation is prevalent in the economy
+(inflation exceeding 35\% for advanced economies, 500\% for emerging economies)
+(4) the economy faces extreme financing constraints, i.e. the sovereign spread
+exceeds 1000 basis points or 2 standard deviations from the country average.
 
+In the data used for this analysis, 
+`r round(mean(as.numeric(levels(data$crisis_next_period))[data$crisis_next_period])*100, 1)`%
+of the recorded observation are classified as fiscal stress events, whereby
+these stress events are not equally distributed across country groups and over
+time. Figure \@ref(fig:stress-distr) displays the distribution of the recorded
+stress events over time for developing and developed economies. The data shows
+that developing economies are more prone to fiscal stress events with 
+`r round(mean(as.numeric(levels(data[data$developed == 0,]$crisis_next_period))[data[data$developed == 0,]$crisis_next_period])*100, 1)`%
+of all observations classified as fiscal stress events compared to
+`r round(mean(as.numeric(levels(data[data$developed == 1,]$crisis_next_period))[data[data$developed == 1,]$crisis_next_period])*100, 1)`%
+for developed economies.
 
-
-```{r stress.distr, fig.height=3, fig.cap="Distribution of Stress Periods"}
+```{r stress-distr, fig.height=3, fig.cap="Distribution of Stress Periods"}
 data <- list.export[["data"]]
 dt <- data
 
@@ -263,7 +271,7 @@ par(las = 1, cex = 0.6)
 barplot(rbind(dt$sum_developing, dt$sum_developed), beside = T,
         names.arg = dt$year, las = 2, col = c("gray30", "gray90"))
 legend("topleft",
-       legend = c("developing countries", "developed countries"),
+       legend = c("developing economies", "developed economies"),
        fill = c("gray30", "gray90"))
 
 
@@ -271,7 +279,7 @@ legend("topleft",
 
 ## Explanatory Variables
 
-```{r means.table}
+```{r means-table}
 # load relevant data
 means.table <- list.export[["means.table"]]
 
