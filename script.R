@@ -23,12 +23,14 @@ if(!require(randomForest)) install.packages("randomForest")
 if(!require(ROCR)) install.packages("ROCR")
 if(!require(iml)) install.packages("iml")
 if(!require(pdp)) install.packages("pdp")
+if(!require(data.table)) install.packages("data.table")
 
 library(glmnet)
 library(randomForest)
 library(ROCR)
 library(iml)
 library(pdp)
+library(data.table)
 
 # objects ---------------------------------------------------------------------.
 
@@ -170,9 +172,13 @@ list.export[["means.table"]] <- means.table
 # 2.2 pairwise correlations ----
 # -----------------------------------------------------------------------------.
 
-variables <- data[, which(names(data) %in% variables)]
+variables.df <- data[, which(names(data) %in% variables)]
 
-corr.matrix <- cor(variables)
+setnames(variables.df,
+         old = varnames$variable,
+         new = varnames$name)
+
+corr.matrix <- cor(variables.df)
 
 list.export[["corr.matrix"]] <- corr.matrix
 
@@ -249,6 +255,15 @@ for(i in 2007:max(data$year)){
 
     x.train <- x.train[, -which(colnames(x.train) %in% drop)]
     x.test <- x.test[, -which(colnames(x.test) %in% drop)]
+    
+    # add interaction effects if binary variable is used for economic development
+    if(dev.measure == "DUMMY"){
+      f <- as.formula( ~ developed*.)
+      x.train <- model.matrix(f, as.data.frame(x.train))[,-1]
+      x.test <- model.matrix(f, as.data.frame(x.test))[,-1] 
+    }
+    # TO DO: TEST IF IT WORKS CORRECTLY
+    
 
     # train model -------------------------------------------------------------.
     # fit model
@@ -575,8 +590,8 @@ predictor.rf.eval <- Predictor$new(
 
 # 4.2.1 shapley values --------------------------------------------------------.
 # calculate shapley values for each observation
-# for(obs in 1:nrow(x.train.eval.df)){
-for(obs in 1:10){
+for(obs in 1:nrow(x.train.eval.df)){
+# for(obs in 1:10){
   
   cat("\rcalculate shapley values for observation", obs, "of",
       nrow(x.train.eval.df), "observations")
@@ -637,7 +652,7 @@ list.export[["ale.ca_balance"]]  <- ale.ca_balance
 # -----------------------------------------------------------------------------.
 save(list.export, file = "data/input.RData")
 
-save.image(file = "workspace_2022-05-01_12.12.RData")
+save.image(file = "workspace_2022-06-25_10.55.RData")
 
 
 cat("\nRuntime:")
