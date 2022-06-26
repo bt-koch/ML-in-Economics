@@ -285,7 +285,7 @@ legend("topleft",
 
 ```
 
-## Explanatory Variables
+## Explanatory Variables {#expl-vars}
 
 Annual frequency data lagged 2 years in regard to the dependent variable, hence
 for an observation period for years `r min(data$year)`-`r max(data$year)`, are
@@ -386,9 +386,18 @@ corrplot(corr.matrix, method = "square", order = "FPC", type = "lower", diag = F
 
 ## Performance
 
+For each year in the interval from 2006 to 2016, both the logit model and the
+random forest model are implemented recursively, trying to classify the state
+of the economy two years later. For the logit model, all variables with pairwise
+correlations exceeding 65% are excluded to avoid multicollinearity and biases.
+The models are fitted twice using either a binary variable as a explanatory
+variable to indicate whether an economy is developed or developing or GDP per
+capita as a continuous measure for the state of development of an economy. If
+the binary variable is used, interaction terms are added to the logit model,
+while the random forest model takes interactions into account by construction
+thus making further adjustments redundant [@jarmulska2020].
 
-
-\@ref(tab:avg-pred-accur)
+Table \@ref(tab:avg-pred-accur) ...
 
 ```{r avg-pred-accur}
 # get relevant data
