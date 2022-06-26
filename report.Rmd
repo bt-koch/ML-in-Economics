@@ -25,10 +25,12 @@ rm(list=ls()); gc()
 if(!require(kableExtra)) install.packages("kableExtra")
 if(!require(randomForest)) install.packages("randomForest")
 if(!require(iml)) install.packages("iml")
+if(!require(corrplot)) install.packages("corrplot")
 
 library(kableExtra)
 library(randomForest)
 library(iml)
+library(corrplot)
 
 knitr::opts_chunk$set(echo = FALSE, fig.align = "center")
 
@@ -209,6 +211,8 @@ the predictors, increasing the difference between the single trees,
 through which the overfitment problem can be reduced [@james2013]. This
 ensemble method corresponds to the random forest algorithm.
 
+*hier noch gewählte Parameter für Random Forest beschreiben*
+
 <!-- \newpage -->
 
 # Data Describtion
@@ -226,7 +230,10 @@ by the International Monetary Fund (3) hyperinflation is prevalent in the econom
 (4) the economy faces extreme financing constraints, i.e. the sovereign spread
 exceeds 1000 basis points or 2 standard deviations from the country average.
 
-In the data used for this analysis, 
+For the analysis, @jarmulska2020 considers `r length(unique(data$country))`
+economies (`r length(unique(data[data$developed == 0,]$country))` developing
+economies,  `r length(unique(data[data$developed == 1,]$country))` developed
+economies) for an observation period for years `r min(data$year)+2`-`r max(data$year)+2`.
 `r round(mean(as.numeric(levels(data$crisis_next_period))[data$crisis_next_period])*100, 1)`%
 of the recorded observation are classified as fiscal stress events, whereby
 these stress events are not equally distributed across country groups and over
@@ -269,7 +276,8 @@ dt <- merge(x = dt_developing, y = dt_developed,
 
 par(las = 1, cex = 0.6)
 barplot(rbind(dt$sum_developing, dt$sum_developed), beside = T,
-        names.arg = dt$year, las = 2, col = c("gray30", "gray90"))
+        names.arg = dt$year, las = 2, col = c("gray30", "gray90"),
+        ylab = "Number of fiscal stress events")
 legend("topleft",
        legend = c("developing economies", "developed economies"),
        fill = c("gray30", "gray90"))
@@ -279,6 +287,23 @@ legend("topleft",
 
 ## Explanatory Variables
 
+Annual frequency data lagged 2 years in regard to the dependent variable, hence
+for an observation period for years `r min(data$year)`-`r max(data$year)`, are
+used to train and test the early warning models. @jarmulska2020 chose a lag of two
+years to simulate the reality of how the early warning models could be used in
+practice, as the data becomes available with a delay of up to one and a half
+years, leaving the decision-makers half a year time to react on the results of
+the models.
+
+All variables used for building the early warning model are listed in Table
+\@ref(tab:means-table) including their means with the distinction whether the
+economy is in a fiscal stress period or not. In addition, using a Wilcoxon
+test with statistical significance at 0.05%, Table \@ref(tab:means-table) shows 
+if the means in tranquil periods and in stress periods are statistically
+different and therefore indicating that the observed variables behave differently
+in stress periods, hence giving the variables potentially explanatory power.
+
+\renewcommand{\arraystretch}{0.75}
 ```{r means-table}
 # load relevant data
 means.table <- list.export[["means.table"]]
@@ -335,7 +360,24 @@ names(means.table)[names(means.table) == "significant"] <- "Significance"
 kbl(means.table[, -which(names(means.table) == "category")], booktabs = T,
     caption = "Means of Explanatory Variables", align = c("l", rep("r", 5))) %>%
   pack_rows(index = table(means.table$category)) %>%
-  kable_styling(latex_options="scale_down")
+  kable_styling(latex_options="scale_down", font_size = 8)
+```
+
+\noindent
+Pairwise correlation is also examined and visualized in Figure \@ref(fig:corrplot).
+Accordingly, the pairwise correlations are relatively low in most cases, which
+is why it can be presumed that the variables contain different information and
+could thus be relevant for the early warning model. However, some variables
+are highly correlated, which is problematic for econometric models such as the
+logit model and therefore should be excluded in the model specification, while
+high pairwise correlations is unproblematic for the random forest model and
+the variables concerned can be kept in the model specification [@jarmulska2020].
+
+```{r corrplot, fig.height=4, fig.cap="Pairwise Correlation"}
+corr.matrix <- list.export$corr.matrix
+
+corrplot(corr.matrix, method = "square", order = "FPC", type = "lower", diag = FALSE,
+         tl.cex = 0.6, tl.col = "black", tl.srt = 45, cl.cex=0.5)
 ```
 
 <!-- \newpage -->
@@ -343,6 +385,10 @@ kbl(means.table[, -which(names(means.table) == "category")], booktabs = T,
 # Empirical Results
 
 ## Performance
+
+
+
+\@ref(tab:avg-pred-accur)
 
 ```{r avg-pred-accur}
 # get relevant data
@@ -354,6 +400,7 @@ dt[colnames(dt) != "model"] <- apply(dt[colnames(dt) != "model"], 2, function(x)
 ```
 
 ```{=tex}
+\renewcommand{\arraystretch}{1}
 \begin{table}[H]
 \centering
 \begin{tabular}{@{\extracolsep{4pt}}lrrrr@{}}
@@ -367,11 +414,12 @@ dt[colnames(dt) != "model"] <- apply(dt[colnames(dt) != "model"], 2, function(x)
 \caption{\label{tab:avg-pred-accur}Average prediction accuracy of early warning models for years 2009-2018}
 \end{table}
 ```
+
 ## Interpretability of Random Forest Algorithm
 
 ### Variable Importance and Shapley Values
 
-```{r rf.VI.SV, fig.cap="Variable Importance and Shapley Values of Predictors used", fig.height=3}
+```{r rf-VI-SV, fig.cap="Variable Importance and Shapley Values of Predictors used", fig.height=3}
 # prepare data for plot for variable importance
 rf.fit.eval <- list.export[["rf.fit.eval"]]
 
@@ -419,7 +467,7 @@ axis(side = 2, at = 1:20, labels = labs.shapley)
 
 ### Partial dependence plots and Accumulated local effects plots
 
-```{r rf.pdp.alep, fig.cap="Partial Dependence and Accumulated Local Effects Plots"}
+```{r rf-pdp-alep, fig.cap="Partial Dependence and Accumulated Local Effects Plots"}
 
 # load data for partial dependence plots
 partial.ca_balance  <- list.export[["partial.ca_balance"]]
