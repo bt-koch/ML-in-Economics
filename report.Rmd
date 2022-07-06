@@ -4,7 +4,6 @@ output:
     number_sections: true
     toc: false
 indent: true
-    # template: tex/template.tex
 bibliography: tex/bibliography.bib
 biblio-style: text/econometrica.bst
 header-includes:
@@ -65,8 +64,8 @@ University of Bern}\\[1cm]
 \tableofcontents
 \newpage
 ```
-
 <!-- Report ------------------------------------------------------------------->
+
 ```{=tex}
 \setcounter{page}{1}
 \onehalfspace
@@ -219,27 +218,32 @@ ensemble method corresponds to the random forest algorithm.
 
 ## Dependent Variable
 
-The binary dependent variable to be predicted follows the definition in @dobrescu2011 
-takes the value of 1 in the case of a fiscal stress event in the next period
-and 0 otherwise. According to the definition provided by @dobrescu2011, an economy
-faces a fiscal stress event, if at least one of the following four conditions are
-fulfilled: (1) the economy fails to service debt as payments come due as well as
-if debt exchanges are distressed (2) the economy receives a large support program
-by the International Monetary Fund (3) hyperinflation is prevalent in the economy
-(inflation exceeding 35\% for advanced economies, 500\% for emerging economies)
-(4) the economy faces extreme financing constraints, i.e. the sovereign spread
-exceeds 1000 basis points or 2 standard deviations from the country average.
+The binary dependent variable to be predicted follows the definition in
+@dobrescu2011 takes the value of 1 in the case of a fiscal stress event
+in the next period and 0 otherwise. According to the definition provided
+by @dobrescu2011, an economy faces a fiscal stress event, if at least
+one of the following four conditions are fulfilled: (1) the economy
+fails to service debt as payments come due as well as if debt exchanges
+are distressed (2) the economy receives a large support program by the
+International Monetary Fund (3) hyperinflation is prevalent in the
+economy (inflation exceeding 35% for advanced economies, 500% for
+emerging economies) (4) the economy faces extreme financing constraints,
+i.e. the sovereign spread exceeds 1000 basis points or 2 standard
+deviations from the country average.
 
-For the analysis, @jarmulska2020 considers `r length(unique(data$country))`
-economies (`r length(unique(data[data$developed == 0,]$country))` developing
-economies,  `r length(unique(data[data$developed == 1,]$country))` developed
-economies) for an observation period for years `r min(data$year)+2`-`r max(data$year)+2`.
+For the analysis, @jarmulska2020 considers
+`r length(unique(data$country))` economies
+(`r length(unique(data[data$developed == 0,]$country))` developing
+economies, `r length(unique(data[data$developed == 1,]$country))`
+developed economies) for an observation period for years
+`r min(data$year)+2`-`r max(data$year)+2`.
 `r round(mean(as.numeric(levels(data$crisis_next_period))[data$crisis_next_period])*100, 1)`%
-of the recorded observation are classified as fiscal stress events, whereby
-these stress events are not equally distributed across country groups and over
-time. Figure \@ref(fig:stress-distr) displays the distribution of the recorded
-stress events over time for developing and developed economies. The data shows
-that developing economies are more prone to fiscal stress events with 
+of the recorded observation are classified as fiscal stress events,
+whereby these stress events are not equally distributed across country
+groups and over time. Figure \@ref(fig:stress-distr) displays the
+distribution of the recorded stress events over time for developing and
+developed economies. The data shows that developing economies are more
+prone to fiscal stress events with
 `r round(mean(as.numeric(levels(data[data$developed == 0,]$crisis_next_period))[data[data$developed == 0,]$crisis_next_period])*100, 1)`%
 of all observations classified as fiscal stress events compared to
 `r round(mean(as.numeric(levels(data[data$developed == 1,]$crisis_next_period))[data[data$developed == 1,]$crisis_next_period])*100, 1)`%
@@ -287,23 +291,26 @@ legend("topleft",
 
 ## Explanatory Variables {#expl-vars}
 
-Annual frequency data lagged 2 years in regard to the dependent variable, hence
-for an observation period for years `r min(data$year)`-`r max(data$year)`, are
-used to train and test the early warning models. @jarmulska2020 chose a lag of two
-years to simulate the reality of how the early warning models could be used in
-practice, as the data becomes available with a delay of up to one and a half
-years, leaving the decision-makers half a year time to react on the results of
-the models.
+Annual frequency data lagged 2 years in regard to the dependent
+variable, hence for an observation period for years
+`r min(data$year)`-`r max(data$year)`, are used to train and test the
+early warning models. @jarmulska2020 chose a lag of two years to
+simulate the reality of how the early warning models could be used in
+practice, as the data becomes available with a delay of up to one and a
+half years, leaving the decision-makers half a year time to react on the
+results of the models.
 
-All variables used for building the early warning model are listed in Table
-\@ref(tab:means-table) including their means with the distinction whether the
-economy is in a fiscal stress period or not. In addition, using a Wilcoxon
-test with statistical significance at 0.05%, Table \@ref(tab:means-table) shows 
-if the means in tranquil periods and in stress periods are statistically
-different and therefore indicating that the observed variables behave differently
-in stress periods, hence giving the variables potentially explanatory power.
+All variables used for building the early warning model are listed in
+Table \@ref(tab:means-table) including their means with the distinction
+whether the economy is in a fiscal stress period or not. In addition,
+using a Wilcoxon test with statistical significance at 0.05%, Table
+\@ref(tab:means-table) shows if the means in tranquil periods and in
+stress periods are statistically different and therefore indicating that
+the observed variables behave differently in stress periods, hence
+giving the variables potentially explanatory power.
 
 \renewcommand{\arraystretch}{0.75}
+
 ```{r means-table}
 # load relevant data
 means.table <- list.export[["means.table"]]
@@ -363,15 +370,16 @@ kbl(means.table[, -which(names(means.table) == "category")], booktabs = T,
   kable_styling(latex_options="scale_down", font_size = 8)
 ```
 
-\noindent
-Pairwise correlation is also examined and visualized in Figure \@ref(fig:corrplot).
-Accordingly, the pairwise correlations are relatively low in most cases, which
-is why it can be presumed that the variables contain different information and
-could thus be relevant for the early warning model. However, some variables
-are highly correlated, which is problematic for econometric models such as the
-logit model and therefore should be excluded in the model specification, while
-high pairwise correlations is unproblematic for the random forest model and
-the variables concerned can be kept in the model specification [@jarmulska2020].
+\noindent Pairwise correlation is also examined and visualized in Figure
+\@ref(fig:corrplot). Accordingly, the pairwise correlations are
+relatively low in most cases, which is why it can be presumed that the
+variables contain different information and could thus be relevant for
+the early warning model. However, some variables are highly correlated,
+which is problematic for econometric models such as the logit model and
+therefore should be excluded in the model specification, while high
+pairwise correlations is unproblematic for the random forest model and
+the variables concerned can be kept in the model specification
+[@jarmulska2020].
 
 ```{r corrplot, fig.height=4, fig.cap="Pairwise Correlation"}
 corr.matrix <- list.export$corr.matrix
@@ -386,18 +394,31 @@ corrplot(corr.matrix, method = "square", order = "FPC", type = "lower", diag = F
 
 ## Performance
 
-For each year in the interval from 2006 to 2016, both the logit model and the
-random forest model are implemented recursively, trying to classify the state
-of the economy two years later. For the logit model, all variables with pairwise
-correlations exceeding 65% are excluded to avoid multicollinearity and biases.
-The models are fitted twice using either a binary variable as a explanatory
-variable to indicate whether an economy is developed or developing or GDP per
-capita as a continuous measure for the state of development of an economy. If
-the binary variable is used, interaction terms are added to the logit model,
-while the random forest model takes interactions into account by construction
+For each year in the interval from 2006 to 2016, both the logit model
+and the random forest model are implemented recursively, trying to
+classify the state of the economy two years later. For the logit model,
+all variables with pairwise correlations exceeding 65% are excluded to
+avoid multicollinearity and biases. The models are fitted twice using
+either a binary variable as a explanatory variable to indicate whether
+an economy is developed or developing or GDP per capita as a continuous
+measure for the state of development of an economy. If the binary
+variable is used, interaction terms are added to the logit model, while
+the random forest model takes interactions into account by construction
 thus making further adjustments redundant [@jarmulska2020].
 
-Table \@ref(tab:avg-pred-accur) ...
+The performance of the models measured using sensitivity (\% of correctly
+classified stress episodes) and specificity (\% of correctly classified tranquil
+episodes) depends on the threshold chosen, whereby when the predicted dependent
+variable exceeds this threshold, a period is classified as a stress episode. 
+Following @jarmulska2020, this threshold is determined by maximizing the weighted
+average of sensitivity and specificity, weighting sensitivity by factor 1, 1.5
+and 2 relatively to sensitivity. Table \@ref(tab:avg-pred-accur) compares the
+performance of the various models summarized as the average performance of the
+recursively trained models by year, using a threshold determined by the maximized
+weighted average using factor 1.5 (note that the AUROC is not dependent on the
+threshold chosen [@jarmulska2020]).
+
+*hier noch performance kommentieren/einordnen/vergleichen*
 
 ```{r avg-pred-accur}
 # get relevant data
@@ -415,9 +436,9 @@ dt[colnames(dt) != "model"] <- apply(dt[colnames(dt) != "model"], 2, function(x)
 \begin{tabular}{@{\extracolsep{4pt}}lrrrr@{}}
                                              & \multicolumn{2}{c}{Logit LASSO}                                         & \multicolumn{2}{c}{Random Forest}                                       \\ \cline{2-3} \cline{4-5}
                                              & \multicolumn{1}{c}{\begin{tabular}[c]{@{}r@{}}advanced\\ dummy\end{tabular}} & \multicolumn{1}{c}{\begin{tabular}[c]{@{}r@{}}GDP\\ per capita\end{tabular}} & \multicolumn{1}{c}{\begin{tabular}[c]{@{}r@{}}advanced\\ dummy\end{tabular}} & \multicolumn{1}{c}{\begin{tabular}[c]{@{}r@{}}GDP\\ per capita\end{tabular}} \\ \hline
-\begin{tabular}[c]{@{}l@{}}\% of correctly\\ classified stress episodes\end{tabular}   & `r dt[dt$model == "logit.lasso.DUMMY",]$prop.pos` & `r dt[dt$model == "logit.lasso.GDP",]$prop.pos` & `r dt[dt$model == "rf.DUMMY",]$prop.pos` & `r dt[dt$model == "rf.GDP",]$prop.pos` \\ \hline
-\begin{tabular}[c]{@{}l@{}}\% of correctly\\ classified tranquil episodes\end{tabular} & `r dt[dt$model == "logit.lasso.DUMMY",]$prop.neg` & `r dt[dt$model == "logit.lasso.GDP",]$prop.neg` & `r dt[dt$model == "rf.DUMMY",]$prop.neg` & `r dt[dt$model == "rf.GDP",]$prop.neg` \\ \hline
-\begin{tabular}[c]{@{}l@{}}Average\\ \phantom{Average} \end{tabular}                                      & `r dt[dt$model == "logit.lasso.DUMMY",]$avg`      & `r dt[dt$model == "logit.lasso.GDP",]$avg`      & `r dt[dt$model == "rf.DUMMY",]$avg`      & `r dt[dt$model == "rf.GDP",]$avg`      \\ \hline
+\begin{tabular}[c]{@{}l@{}}sensitivity (\% of correctly\\ classified stress episodes)\end{tabular}   & `r dt[dt$model == "logit.lasso.DUMMY",]$prop.pos` & `r dt[dt$model == "logit.lasso.GDP",]$prop.pos` & `r dt[dt$model == "rf.DUMMY",]$prop.pos` & `r dt[dt$model == "rf.GDP",]$prop.pos` \\ \hline
+\begin{tabular}[c]{@{}l@{}}specificity (\% of correctly\\ classified tranquil episodes)\end{tabular} & `r dt[dt$model == "logit.lasso.DUMMY",]$prop.neg` & `r dt[dt$model == "logit.lasso.GDP",]$prop.neg` & `r dt[dt$model == "rf.DUMMY",]$prop.neg` & `r dt[dt$model == "rf.GDP",]$prop.neg` \\ \hline
+\begin{tabular}[c]{@{}l@{}}Average of sensitivity\\ and specificity \end{tabular}                                      & `r dt[dt$model == "logit.lasso.DUMMY",]$avg`      & `r dt[dt$model == "logit.lasso.GDP",]$avg`      & `r dt[dt$model == "rf.DUMMY",]$avg`      & `r dt[dt$model == "rf.GDP",]$avg`      \\ \hline
 \begin{tabular}[c]{@{}l@{}}AUROC\\ \phantom{AUROC} \end{tabular}                                        & `r dt[dt$model == "logit.lasso.DUMMY",]$auc`      & `r dt[dt$model == "logit.lasso.GDP",]$auc`      & `r dt[dt$model == "rf.DUMMY",]$auc`      & `r dt[dt$model == "rf.GDP",]$auc`      \\ \hline
 \end{tabular}
 \caption{\label{tab:avg-pred-accur}Average prediction accuracy of early warning models for years 2009-2018}
@@ -427,6 +448,9 @@ dt[colnames(dt) != "model"] <- apply(dt[colnames(dt) != "model"], 2, function(x)
 ## Interpretability of Random Forest Algorithm
 
 ### Variable Importance and Shapley Values
+
+*definition schreiben und kommentieren/beschreiben was es konkret bedeutet*
+*resp. wie es zu lesen ist*
 
 ```{r rf-VI-SV, fig.cap="Variable Importance and Shapley Values of Predictors used", fig.height=3}
 # prepare data for plot for variable importance
@@ -476,6 +500,9 @@ axis(side = 2, at = 1:20, labels = labs.shapley)
 
 ### Partial dependence plots and Accumulated local effects plots
 
+*definition schreiben und kommentieren/beschreiben was es konkret bedeutet*
+*resp. wie es zu lesen ist*
+
 ```{r rf-pdp-alep, fig.cap="Partial Dependence and Accumulated Local Effects Plots"}
 
 # load data for partial dependence plots
@@ -519,6 +546,8 @@ rug(x.train.eval.df$net_lending, ticksize = 0.015)
 <!-- \newpage -->
 
 # Conclusion
+
+reputation and credibility (p19)? 
 
 <!-- References --------------------------------------------------------------->
 
