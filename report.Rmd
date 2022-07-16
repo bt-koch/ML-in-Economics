@@ -18,7 +18,6 @@ editor_options:
 ---
 
 <!-- Setup -------------------------------------------------------------------->
-
 ```{r setup, include=FALSE}
 rm(list=ls()); gc()
 if(!require(kableExtra)) install.packages("kableExtra")
@@ -31,7 +30,35 @@ library(randomForest)
 library(iml)
 library(corrplot)
 
-knitr::opts_chunk$set(echo = FALSE, fig.align = "center")
+# use computer modern font for plots?
+plots_cmfont <- T
+# I leave the option to use font "sans" (base R) since using computer modern
+# font ("LaTeX-font") required some additional installations on my device:
+# R version 4.1.2 (2021-11-01)
+# Platform: aarch64-apple-darwin20 (64-bit)
+# Running under: macOS Monterey 12.4
+# required steps to use computer modern:
+# - install Latin Modern Fonts, e.g. from http://www.fontsquirrel.com/fonts/latin-modern-roman
+#   make sure to download TTF version
+# - import these fonts using extrafont::font_import()
+#   here I received following error message:
+#    Scanning ttf files in my/path/to/fonts ...   
+#    Extracting .afm files from .ttf files...
+#    my/path/to/fonts/lmroman10-bold-webfont.ttf : No FontName. Skipping.
+#   Downgrading package "Rttf2pt1" from version 1.3.9 to 1.3.8 solved this error
+#    package_url <- "https://cran.r-project.org/src/contrib/Archive/Rttf2pt1/Rttf2pt1_1.3.8.tar.gz"
+#    install.packages(package_url, repos=NULL, type="source")
+# - install package Cairo and use it as the graphics device in knitr::opts_chunk$set
+if(plots_cmfont){
+  if(!require(extrafont)) install.packages("extrafont")
+  library(extrafont)
+  loadfonts(device = "all")
+  knitr::opts_chunk$set(echo = FALSE, fig.align = "center", dev = "cairo_pdf")
+  fontfamily <- "LM Roman 10"
+} else {
+  knitr::opts_chunk$set(echo = FALSE, fig.align = "center")
+  fontfamily <- "sans"
+}
 
 load("data/input.RData")
 varnames <- list.export[["varnames"]]
@@ -39,7 +66,6 @@ data <- list.export[["data"]]
 ```
 
 <!-- Title Page + TOC --------------------------------------------------------->
-
 ```{=tex}
 \newpage
 \vspace*{3.5cm}
@@ -64,12 +90,13 @@ University of Bern}\\[1cm]
 \tableofcontents
 \newpage
 ```
-<!-- Report ------------------------------------------------------------------->
 
+<!-- Report ------------------------------------------------------------------->
 ```{=tex}
 \setcounter{page}{1}
 \onehalfspace
 ```
+
 # Introduction and Literature Review
 
 Since the latest Great Recession with its corresponding deterioration of
@@ -116,8 +143,7 @@ of the random forest algorithm. As the results are often criticized for
 being difficult to interpret, ways of interpreting the developed early
 warning model based on random forest are presented.
 
-*to do: noch ein paar beispielpapers hinzufügen also literature review
-ausbauen*
+*to do: noch ein paar beispielpapers hinzufügen also literature review ausbauen*
 
 <!-- \newpage -->
 
@@ -170,6 +196,7 @@ as follows:
 + \lambda \sum^p_{j=1}|\beta_j| \right\}
 \end{equation}
 ```
+
 \noindent whereby $\lambda$ corresponds to the penalization parameter.
 As can be seen in Equation \eqref{eq:lasso}, the higher $\lambda$, the
 higher the number of coefficients shrunk to zero. Here, $\lambda$ is
@@ -197,6 +224,7 @@ in classification and regression trees, can be utilised
 g(w) = \sum_{k \neq j}p_{wk}p_{wj} = \sum_k p_{wk}(1-p_{wk})
 \end{equation}
 ```
+
 \noindent whereby $p_{wj}$ corresponds to the probability distribution
 of class $j$ in node $w$.
 
@@ -278,7 +306,7 @@ dt <- merge(x = dt_developing, y = dt_developed,
             by = "year",
             all = T)
 
-par(las = 1, cex = 0.6)
+par(las = 1, cex = 0.65, family = fontfamily)
 barplot(rbind(dt$sum_developing, dt$sum_developed), beside = T,
         names.arg = dt$year, las = 2, col = c("gray30", "gray90"),
         ylab = "Number of fiscal stress events")
@@ -383,9 +411,10 @@ the variables concerned can be kept in the model specification
 
 ```{r corrplot, fig.height=4, fig.cap="Pairwise Correlation"}
 corr.matrix <- list.export$corr.matrix
+par(family = fontfamily)
 
 corrplot(corr.matrix, method = "square", order = "FPC", type = "lower", diag = FALSE,
-         tl.cex = 0.6, tl.col = "black", tl.srt = 45, cl.cex=0.5)
+         tl.cex = 0.6, tl.col = "black", tl.srt = 45, cl.cex=0.7)
 ```
 
 <!-- \newpage -->
@@ -414,11 +443,11 @@ Following @jarmulska2020, this threshold is determined by maximizing the weighte
 average of sensitivity and specificity, weighting sensitivity by factor 1, 1.5
 and 2 relatively to sensitivity. Table \@ref(tab:avg-pred-accur) compares the
 performance of the various models summarized as the average performance of the
-recursively trained models by year, using a threshold determined by the maximized
-weighted average using factor 1.5 (note that the AUROC is not dependent on the
-threshold chosen [@jarmulska2020]).
-
-*hier noch performance kommentieren/einordnen/vergleichen*
+recursively trained models by year on the corresponding test data, using a
+threshold determined by the maximized weighted average using factor 1.5 (note
+that the AUROC is not dependent on the threshold chosen [@jarmulska2020]). Thereby
+it can be seen that the model using random forest outperforms the logit LASSO 
+approach in both specifications and in all performance metrics.
 
 ```{r avg-pred-accur}
 # get relevant data
@@ -447,10 +476,18 @@ dt[colnames(dt) != "model"] <- apply(dt[colnames(dt) != "model"], 2, function(x)
 
 ## Interpretability of Random Forest Algorithm
 
+### Interpretation of logit LASSO vs Random Forest
+
+*hier evtl. kapitel ein bisschen einleiten isv logit interpretation wie gewohnt*
+*dh marginal effects etc daher wird nicht darauf eingegangen blabla*
+
 ### Variable Importance and Shapley Values
 
-*definition schreiben und kommentieren/beschreiben was es konkret bedeutet*
-*resp. wie es zu lesen ist*
+*definition varimp (src = breiman 2001)*
+
+*definition shapley*
+
+*vgl varimp und shapley*
 
 ```{r rf-VI-SV, fig.cap="Variable Importance and Shapley Values of Predictors used", fig.height=3}
 # prepare data for plot for variable importance
@@ -482,7 +519,8 @@ shapley.values <- shapley.values[order(shapley.values$x, decreasing = T), c(1:4)
 labs.shapley <- rev(shapley.values$name)
 
 # draw plot
-par(mar = c(5.1, 10.5, 2.1, 0.5), mfrow = c(1,2), las=1, cex = 0.75, cex.axis = 0.75, mgp = c(1.75, 0.75, 0))
+par(mar = c(5.1, 10.5, 2.1, 0.5), mfrow = c(1,2), las=1, cex = 0.75,
+    cex.axis = 0.75, mgp = c(1.75, 0.75, 0), family = fontfamily)
 
 # plot 1: variable importance
 plot(x = varimp$MeanDecreaseGini, y = varimp$yaxis,
@@ -503,7 +541,7 @@ axis(side = 2, at = 1:20, labels = labs.shapley)
 *definition schreiben und kommentieren/beschreiben was es konkret bedeutet*
 *resp. wie es zu lesen ist*
 
-```{r rf-pdp-alep, fig.cap="Partial Dependence and Accumulated Local Effects Plots"}
+```{r rf-pdp-alep, fig.cap="Partial Dependence (LHS) and Accumulated Local Effects (RHS) Plots"}
 
 # load data for partial dependence plots
 partial.ca_balance  <- list.export[["partial.ca_balance"]]
@@ -516,7 +554,9 @@ ale.net_lending <- list.export[["ale.net_lending"]]
 # prepare plot
 # x.train.eval.df <- list.export[["x.train.eval.df"]]
 x.train.eval.df <- as.data.frame(list.export[["x.train.eval"]])
-par(mfrow = c(2,2), mar = c(5.1, 4.1, 1, 2.1), cex = 0.65, cex.axis = 0.75, las = 1, mgp = c(2.25, 0.55, 0))
+
+par(mfrow = c(2,2), mar = c(5.1, 4.1, 1, 2.1), cex = 0.7, cex.axis = 0.75,
+    las = 1, mgp = c(2.25, 0.55, 0), family = fontfamily)
 
 # plot upper left: pdp for ca balance
 plot(x = partial.ca_balance$ca_balance, y = partial.ca_balance$yhat,
@@ -547,7 +587,9 @@ rug(x.train.eval.df$net_lending, ticksize = 0.015)
 
 # Conclusion
 
-reputation and credibility (p19)? 
+*reputation and credibility (p19)?*
+
+*see slide 22 ML VL 10 -> RF outperformed by other methods?*
 
 <!-- References --------------------------------------------------------------->
 
