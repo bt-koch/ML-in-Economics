@@ -65,30 +65,29 @@ varnames <- list.export[["varnames"]]
 data <- list.export[["data"]]
 ```
 
-<!-- Title Page + TOC --------------------------------------------------------->
+<!-- Title Page --------------------------------------------------------------->
 ```{=tex}
-\newpage
-\vspace*{3.5cm}
+\thispagestyle{plain}
 \begin{center}
-{\Large Machine Learning in Economics \\ (458657)}
+    \Large
+    \textbf{Random forest versus logit models: Which offers better early warning
+    of fiscal stress?}
+        
+    \vspace{0.4cm}
+    \large
+    replication paper
+        
+    \vspace{0.4cm}
+    \textbf{Bela Tim Koch} \\ 
+    
+    Machine Learning in Economics (458657) \\
+    Spring Semester 2022 \\
+    \vspace{0.4cm}
+    \textbf{Departement of Economics} \\
+    \textbf{University of Bern}
+       
+    \vspace{0.9cm}
 \end{center}
-\vspace*{1.5cm}
-\begin{center}
-\thispagestyle{empty}
-{\LARGE \bf replication paper}\\[1.5cm]
-{\Huge Early Warning System for Fiscal Stress}\\[1.5cm]
-{\bf \Large comparing the traditional logistic regression approach \\ with random forest}\\[2cm]
-{\bf \large Department of Economics\\
-University of Bern}\\[1cm]
-{\Large Spring Semester 2022}\\[1.5cm]
-{\large submitted by Bela Tim Koch} \\[2.5cm]
-\end{center}
-```
-```{=tex}
-\newpage
-\thispagestyle{empty}
-\tableofcontents
-\newpage
 ```
 
 <!-- Report ------------------------------------------------------------------->
@@ -142,10 +141,6 @@ operator, and a model based on machine learning, i.e. an implementation
 of the random forest algorithm. As the results are often criticized for
 being difficult to interpret, ways of interpreting the developed early
 warning model based on random forest are presented.
-
-*to do: noch ein paar beispielpapers hinzufügen also literature review ausbauen*
-
-<!-- \newpage -->
 
 # Model Describtion
 
@@ -220,7 +215,7 @@ in classification and regression trees, can be utilised
 [@jarmulska2020]:
 
 ```{=tex}
-\begin{equation}
+\begin{equation} \label{eq:gini}
 g(w) = \sum_{k \neq j}p_{wk}p_{wj} = \sum_k p_{wk}(1-p_{wk})
 \end{equation}
 ```
@@ -478,16 +473,32 @@ dt[colnames(dt) != "model"] <- apply(dt[colnames(dt) != "model"], 2, function(x)
 
 ### Interpretation of logit LASSO vs Random Forest
 
-*hier evtl. kapitel ein bisschen einleiten isv logit interpretation wie gewohnt*
-*dh marginal effects etc daher wird nicht darauf eingegangen blabla*
+As seen in \@ref(tab:avg-pred-accur), the model using random forest outperforms
+the more traditionally used logit model. Depending on the application, however,
+performance alone is not the only relevant factor when choosing a model. Another
+central criterion in many use cases is the interpretability of the model, whereby
+the logit model benefits from the possibility of applying classical econometric
+methods (marginal effects, Wald test). However, there are also various methods
+that can be used to interpret the random forest model. These methods are
+discussed in the following chapters.
 
-### Variable Importance and Shapley Values
+### Variable Importance [@breiman2001] and Shapley Values [@shapley1953]
 
-*definition varimp (src = breiman 2001)*
+According to @jarmulska2020 following @breiman2001, variable importance corresponds
+to the average improvement of a model's performance caused by the addition of the
+respective variable. This improvement can be quantified either as the mean increase
+in performance or the mean decrease in impurity measured by the Gini index (see
+Equation \@ref(eq:gini)). When correlation is present between the different
+variables considered, it is important to be aware that the variable importance
+might be biased due to unrealistic observations caused by permutation when
+calculating the variable importance. In addition, the magnitude of the results
+will be decreased when correlation is present, since the actual importance is
+distributed between the correlated variables.
+
 
 *definition shapley*
 
-*vgl varimp und shapley*
+Figure \@ref(fig:rf-VI-SV) shows blablas
 
 ```{r rf-VI-SV, fig.cap="Variable Importance and Shapley Values of Predictors used", fig.height=3}
 # prepare data for plot for variable importance
@@ -536,7 +547,7 @@ abline(h = 1:20, lty = 3)
 axis(side = 2, at = 1:20, labels = labs.shapley)
 ```
 
-### Partial dependence plots and Accumulated local effects plots
+### Partial dependence plots [@friedman2001] and Accumulated local effects plots [@apley2020]
 
 *definition schreiben und kommentieren/beschreiben was es konkret bedeutet*
 *resp. wie es zu lesen ist*
