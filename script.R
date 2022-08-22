@@ -6,18 +6,19 @@
 # i.e. a random forest
 # =============================================================================.
 
-# Initialization --------------------------------------------------------------.
+# Initialization ----
+# -----------------------------------------------------------------------------.
 rm(list = ls()); gc()
 start_time <- Sys.time()
 
-# # set seed (please uncomment depending on your R Version)
-# # if using R 3.6 or later:
-# set.seed(12345, sample.kind = "Rounding")
-# # if using R 3.5 or earlier:
-# set.seed(0)
-# set.seed(34)
+# set seed (please uncomment depending on your R Version)
+# if using R 3.6 or later:
+set.seed(1999, sample.kind = "Rounding")
+# if using R 3.5 or earlier:
+# set.seed(1999)
 
-# package management ----------------------------------------------------------.
+# package management ----
+# -----------------------------------------------------------------------------.
 if(!require(glmnet)) install.packages("glmnet")
 if(!require(randomForest)) install.packages("randomForest")
 if(!require(ROCR)) install.packages("ROCR")
@@ -32,7 +33,8 @@ library(iml)
 library(pdp)
 library(data.table)
 
-# objects ---------------------------------------------------------------------.
+# objects ----
+# -----------------------------------------------------------------------------.
 
 means.table <- data.frame(
   variable = character(),
@@ -88,7 +90,8 @@ shapley.values <- data.frame(
   phi = numeric()
 )
 
-# functions -------------------------------------------------------------------.
+# functions ----
+# -----------------------------------------------------------------------------.
 
 pred <- function(model, newdata){
   res <- as.data.frame(predict(model, newdata, type = "prob"))
@@ -114,7 +117,6 @@ rm(url)
 # -----------------------------------------------------------------------------.
 
 # factorize dummy variable(s)
-# data$developed <- factor(x = data$developed, levels = c(0,1), labels = c(0,1))
 data$crisis_next_period <- factor(x = data$crisis_next_period, levels = c(0,1), labels = c(0,1))
 data$crisis_next_year <- factor(data$crisis_next_year, levels = c(0,1), labels = c(0,1))
 data$crisis_first_year <- factor(data$crisis_first_year, levels = c(0,1), labels = c(0,1))
@@ -188,17 +190,8 @@ list.export[["corr.matrix"]] <- corr.matrix
 # =============================================================================.
 cat("\nTrain models:")
 
-# test <- 1
-# test.set.seed <- 30
-# while(test > 0.1){
-# results.lasso <- c()
-# test.set.seed <- test.set.seed + 1
-# cat("\nrun with set.seed =", test.set.seed)
-# set.seed(test.set.seed)
-
 for(i in 2007:max(data$year)){
-# for(i in 2007:2008){
-  
+
   # ---------------------------------------------------------------------------.
   # 3.1 Prepare training ----
   # ---------------------------------------------------------------------------.
@@ -244,7 +237,6 @@ for(i in 2007:max(data$year)){
   cat("\ntrain logit lasso for", i)
 
   for(dev.measure in c("GDP", "DUMMY")){
-  # for(dev.measure in c("GDP")){
 
     # get data ----------------------------------------------------------------.
     x.train <- get(paste0("x.train.", dev.measure))
@@ -262,8 +254,6 @@ for(i in 2007:max(data$year)){
       x.train <- model.matrix(f, as.data.frame(x.train))[,-1]
       x.test <- model.matrix(f, as.data.frame(x.test))[,-1] 
     }
-    # TO DO: TEST IF IT WORKS CORRECTLY
-    
 
     # train model -------------------------------------------------------------.
     # fit model
@@ -272,8 +262,6 @@ for(i in 2007:max(data$year)){
     lasso.lambda.min <- lasso.fit$lambda.min
 
     # get predicted probability on train set
-    # lasso.response.train <- predict(lasso.fit, newx = x.train, s = "lambda.min",
-    #                                 type = "response", standardize = TRUE)
     lasso.response.train <- predict(lasso.fit, newx = x.train, s = "lambda.1se",
                                     type = "response", standardize = TRUE)
 
@@ -283,7 +271,6 @@ for(i in 2007:max(data$year)){
     lasso.spec <- performance(lasso.pred, measure = "spec", x.measure = "cutoff")
 
     for(weight in weights){
-    # for(weight in c(1)){
       sens <- lasso.sens@y.values[[1]]
       spec <- lasso.spec@y.values[[1]]
       max.sum <- which.max(weight*sens+spec)
@@ -301,15 +288,8 @@ for(i in 2007:max(data$year)){
     }
 
     # test model --------------------------------------------------------------.
-    # lasso.response.test <- predict(lasso.fit, newx = x.test, s = "lambda.min", # is this the same lambda as in train?
-    #                                type = "response", standardize = TRUE)
-    # lasso.response.test <- predict(lasso.fit, newx = x.test, s = lasso.lambda.min, # is this the same lambda as in train?
-    #                                type = "response", standardize = TRUE)
-    lasso.response.test <- predict(lasso.fit, newx = x.test, s = "lambda.1se", # is this the same lambda as in train?
+    lasso.response.test <- predict(lasso.fit, newx = x.test, s = "lambda.1se",
                                    type = "response", standardize = TRUE)
-
-    # colnames(lasso.response.test) <- "response"
-    # lasso.response.test <- as.data.frame(lasso.response.test)
 
     # calculate area under curve
     lasso.asses <- assess.glmnet(lasso.fit, newx = x.test, newy = y.test,
@@ -319,7 +299,6 @@ for(i in 2007:max(data$year)){
     # calculate true positive rate and true negative rate with different weights
     # on sensitivity and specificity
     for(w in weights){
-    # for(w in c(1)){
       cutoff.temp <- cutoffs.lasso[
         cutoffs.lasso$weight == w
         & cutoffs.lasso$model == paste0("logit.lasso.", dev.measure)
@@ -327,7 +306,6 @@ for(i in 2007:max(data$year)){
       ]$cutoff
 
       # assign class conditional on best cutoff for corresponding weight
-      # lasso.yhat.temp <- ifelse(lasso.response.test$response > cutoff.temp, 1, 0)
       lasso.yhat.temp <- ifelse(lasso.response.test > cutoff.temp, 1, 0)
 
       y.test.num <- as.numeric(as.character(y.test))
@@ -339,23 +317,11 @@ for(i in 2007:max(data$year)){
       lasso.fn.temp <- sum(lasso.yhat.temp == 0 & y.test.num == 1)
 
       # calculate rates
-      # lasso.tpr.temp <- lasso.tp.temp/(lasso.tp.temp+lasso.fn.temp)
-      # lasso.tnr.temp <- lasso.tn.temp/(lasso.tn.temp+lasso.fp.temp)
-      # lasso.avg.temp <- 0.5*(lasso.tpr.temp+lasso.tnr.temp)
       lasso.prop.positives <- lasso.tp.temp/sum(y.test.num == 1)
       lasso.prop.negatives <- lasso.tn.temp/sum(y.test.num == 0)
       lasso.avg.temp <- 0.5*(lasso.prop.positives+lasso.prop.negatives)
 
       # save results
-      # temp <- data.frame(
-      #   model = paste0("logit.lasso.", dev.measure),
-      #   year = i,
-      #   weight = w,
-      #   tpr = lasso.tpr.temp,
-      #   tnr = lasso.tnr.temp,
-      #   avg = lasso.avg.temp,
-      #   auc = lasso.auc
-      # )
       temp <- data.frame(
         model = paste0("logit.lasso.", dev.measure),
         year = i,
@@ -442,23 +408,10 @@ for(i in 2007:max(data$year)){
       rf.fn.temp <- sum(rf.yhat.temp == 0 & y.test.num == 1)
 
       # calculate rates
-      # rf.tpr.temp <- rf.tp.temp/(rf.tp.temp+rf.tn.temp)
-      # rf.tnr.temp <- rf.tn.temp/(rf.tn.temp+rf.fp.temp)
-      # rf.avg.temp <- 0.5*(rf.tpr.temp+rf.tnr.temp)
       rf.prop.positives.temp <- rf.tp.temp/sum(y.test.num == 1)
       rf.prop.negatives.temp <- rf.tn.temp/sum(y.test.num == 0)
       rf.avg.temp <- 0.5*(rf.prop.positives.temp+rf.prop.negatives.temp)
 
-      # save results
-      # temp <- data.frame(
-      #   model = paste0("rf.", dev.measure),
-      #   year = i,
-      #   weight = w,
-      #   tpr = rf.tpr.temp,
-      #   tnr = rf.tnr.temp,
-      #   avg = rf.avg.temp,
-      #   auc = rf.auc
-      # )
       temp <- data.frame(
         model = paste0("rf.", dev.measure),
         year = i,
@@ -591,8 +544,7 @@ predictor.rf.eval <- Predictor$new(
 # 4.2.1 shapley values --------------------------------------------------------.
 # calculate shapley values for each observation
 for(obs in 1:nrow(x.train.eval.df)){
-# for(obs in 1:10){
-  
+
   cat("\rcalculate shapley values for observation", obs, "of",
       nrow(x.train.eval.df), "observations")
   flush.console()
