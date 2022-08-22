@@ -127,7 +127,7 @@ However, a disadvantage many of these machine learning methods compared
 to more traditional approaches is the difficulty of understanding how a
 result was obtained and are therefore often referred to as a black box
 [@ghoddusi2019]. Consequently, the researcher is confronted with a
-trade-off between prediction or interpretation. @ghoddusi2019 argue,
+trade-off between prediction and interpretation. @ghoddusi2019 argue,
 that emphasis should be in interpretation for scientific research or
 policy decisions, since understanding the relationship and behavior
 among different variables is more important than prediction accuracy. In
@@ -242,7 +242,7 @@ ensemble method corresponds to the random forest algorithm.
 ## Dependent Variable
 
 The binary dependent variable to be predicted follows the definition in
-@dobrescu2011 takes the value of 1 in the case of a fiscal stress event
+@dobrescu2011 and takes the value of 1 in the case of a fiscal stress event
 in the next period and 0 otherwise. According to the definition provided
 by @dobrescu2011, an economy faces a fiscal stress event, if at least
 one of the following four conditions are fulfilled: (1) the economy
@@ -473,7 +473,7 @@ dt[colnames(dt) != "model"] <- apply(dt[colnames(dt) != "model"], 2, function(x)
 
 ### Interpretation of logit LASSO vs Random Forest
 
-As seen in \@ref(tab:avg-pred-accur), the model using random forest outperforms
+As seen in Table \@ref(tab:avg-pred-accur), the model using random forest outperforms
 the more traditionally used logit model. Depending on the application, however,
 performance alone is not the only relevant factor when choosing a model. Another
 central criterion in many use cases is the interpretability of the model, whereby
@@ -495,10 +495,19 @@ calculating the variable importance. In addition, the magnitude of the results
 will be decreased when correlation is present, since the actual importance is
 distributed between the correlated variables.
 
+As @strumbelj2014 showed, Shapley values (see @shapley1953) - originally a solution
+concept in cooperative game theory - can be used to interpret the results of a
+machine learning algorithm by determining which variables are influential in a
+prediction. By assigning a quantitative value to each variable, Shapley values
+show the importance of a variable on the result of the prediction over a collection
+of observations [@ma2020]. Further technical information can be found for example
+in @strumbelj2014 or in @ghorbani2019.
 
-*definition shapley*
-
-Figure \@ref(fig:rf-VI-SV) shows blablas
+Figure \@ref(fig:rf-VI-SV) shows the variable importance and the Shapley values
+for all variables considered in the model, whereby a higher value indicates a
+higher influence in the prediction. In line with the results obtained by
+@jarmulska2020, both Breiman's variable importance and Shapley values similarly
+rank the importance of the variables. 
 
 ```{r rf-VI-SV, fig.cap="Variable Importance and Shapley Values of Predictors used", fig.height=3}
 # prepare data for plot for variable importance
