@@ -580,14 +580,14 @@ partial.net_lending <- partial(rf.fit.eval, train = x.train.eval,
 partial.ca_balance <- partial(rf.fit.eval, train = x.train.eval,
                               pred.var = "ca_balance", plot = F,
                               type = "classification", which.class = 2)
-
-# test
-test <- partial(rf.fit.eval, train = x.train.eval,
-                               pred.var = "net_lending", plot = T,
+partial.diff_unempl <- partial(rf.fit.eval, train = x.train.eval,
+                               pred.var = "diff_unempl", plot = F,
                                type = "classification", which.class = 2)
 
+# export 
 list.export[["partial.net_lending"]] <- partial.net_lending
 list.export[["partial.ca_balance"]]  <- partial.ca_balance
+list.export[["partial.diff_unempl"]]  <- partial.diff_unempl
 
 # 4.2.3 accumulated local effects ---------------------------------------------.
 # calculate accumulated local effects
@@ -595,17 +595,17 @@ ale.net_lending <- FeatureEffect$new(predictor.rf.eval,
                                      feature = "net_lending")
 ale.ca_balance  <- FeatureEffect$new(predictor.rf.eval,
                                      feature = "ca_balance")
+ale.ca_balance  <- FeatureEffect$new(predictor.rf.eval,
+                                     feature = "diff_unempl")
 
 list.export[["ale.net_lending"]] <- ale.net_lending
 list.export[["ale.ca_balance"]]  <- ale.ca_balance
+list.export[["ale.diff_unempl"]]  <- ale.diff_unempl
 
 # -----------------------------------------------------------------------------.
 # 4.3 save relevant data for rmd report ----
 # -----------------------------------------------------------------------------.
 save(list.export, file = "data/input.RData")
-
-save.image(file = "workspace_2022-06-25_10.55.RData")
-
 
 cat("\nRuntime:")
 Sys.time() - start_time
