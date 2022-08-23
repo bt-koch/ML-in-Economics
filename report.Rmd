@@ -211,8 +211,7 @@ to all observations within this node, minimizing the classification
 error at the level of the terminal nodes results in a minimization of
 the tree's overall classification error [@jarmulska2020]. To measure the
 precision of the fit, the Gini Index, which is used as a loss function
-in classification and regression trees, can be utilised
-[@jarmulska2020]:
+in classification and regression trees, can be utilised [@jarmulska2020]:
 
 ```{=tex}
 \begin{equation} \label{eq:gini}
@@ -233,7 +232,7 @@ the predictors, increasing the difference between the single trees,
 through which the overfitment problem can be reduced [@james2013]. This
 ensemble method corresponds to the random forest algorithm.
 
-*hier noch gewählte Parameter für Random Forest beschreiben*
+\textcolor{red}{*hier noch gewählte Parameter für Random Forest beschreiben*}
 
 <!-- \newpage -->
 
@@ -558,8 +557,34 @@ axis(side = 2, at = 1:20, labels = labs.shapley)
 
 ### Partial dependence plots [@friedman2001] and Accumulated local effects plots [@apley2020]
 
-*definition schreiben und kommentieren/beschreiben was es konkret bedeutet*
-*resp. wie es zu lesen ist*
+In this application of predicting probabilities, partial dependence plots according
+to @friedman2001 show the effect of a variable at different values on the predicted
+probability. To do this, all other independent variables are averaged and a model
+is fitted, depending on the varying variable to be considered. Certain artificially
+created observations could bias the results, especially in the case of correlated
+variables, since these observations might be implausible in reality [@jarmulska2020].
+
+As an alternative to partial dependence plots, accumulated local effects plots
+following @apley2020 can be used, for which correlation among the independent
+variables does not lead to biases. Reason for this is that accumulated local
+effects plots display the effect of a change in the variable to be considered
+on the predicted probability only in a small interval, accumulated over a grid
+of such small intervals, hence making pure effect of changes in this variable
+visible [@jarmulska2020].
+
+The partial dependence plots (left-hand side) and the local effects plots
+(right-hand side) are visible in Figure \@ref(fig:rf-pdp-alep) for the variables
+*current account balance* and *unemployment changes*, whereby a similar shape of the
+curves is recognisable. When examining these plots for the independent variables
+used in this model, for many variables a U-shaped curve can be detected, indicating
+that both up- and downshifts in the corresponding variable contribute to higher
+probability of fiscal stress. However, these U-shaped curves are strongly influenced
+by the tails of the distribution, potentially problematic for both partial
+dependence and accumulated local effects plots and should therefore be interpreted
+with caution [@jarmulska2020].
+
+\textcolor{red}{*hier ein plot ersetzen mit u-shaped da interessanter, zB unemployment*}
+
 
 ```{r rf-pdp-alep, fig.cap="Partial Dependence (LHS) and Accumulated Local Effects (RHS) Plots"}
 
