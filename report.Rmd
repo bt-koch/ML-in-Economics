@@ -230,11 +230,10 @@ correlated resulting again in overfitting. To decorrelate the single
 trees, the non-terminal nodes can be forced to consider only a subset of
 the predictors, increasing the difference between the single trees,
 through which the overfitment problem can be reduced [@james2013]. This
-ensemble method corresponds to the random forest algorithm.
-
-\textcolor{red}{*hier noch gewählte Parameter für Random Forest beschreiben*}
-
-<!-- \newpage -->
+ensemble method corresponds to the random forest algorithm. In this application,
+10'000 trees are grown to construct the random forest. The number of variables
+considered at each non-terminal node is determined by the square-root of the
+number of variables considered by the random forest algorithm, i.e. 4.
 
 # Data Describtion
 
@@ -411,7 +410,7 @@ corrplot(corr.matrix, method = "square", order = "FPC", type = "lower", diag = F
          tl.cex = 0.6, tl.col = "black", tl.srt = 45, cl.cex=0.7)
 ```
 
-<!-- \newpage -->
+\newpage
 
 # Empirical Results
 
@@ -468,7 +467,7 @@ dt[colnames(dt) != "model"] <- apply(dt[colnames(dt) != "model"], 2, function(x)
 \end{table}
 ```
 
-## Interpretability of Random Forest Algorithm
+## Interpretability of Random Forest Algorithm {#section-interpretation}
 
 ### Interpretation of logit LASSO vs Random Forest
 
@@ -582,7 +581,8 @@ downshifts in the corresponding variable contribute to higher probability of
 fiscal stress. However, these U-shaped curves are strongly influenced
 by the tails of the distribution, potentially problematic for both partial
 dependence and accumulated local effects plots and should therefore be interpreted
-with caution [@jarmulska2020]. The rug plot on the x-axis in \@ref(fig:rf-pdp.alep)
+with caution [@jarmulska2020]. The rug plot on the x-axis in Figure 
+\@ref(fig:rf-pdp-alep)
 indicates the distribution of the variable considered.
 
 
@@ -639,19 +639,55 @@ plot(x = ale.diff_unempl$results$diff_unempl, y = ale.diff_unempl$results$.value
 rug(x.train.eval.df$diff_unempl, ticksize = 0.015)
 ```
 
-<!-- \newpage -->
+\newpage
 
 # Conclusion
 
-*reputation and credibility (p19)?*
+As obtained in Table \@ref(tab:avg-pred-accur), the random forest model with an
+average of sensitivity and specificity of 77-79\% outperforms the logit lasso model
+with an average of sensitivity and specificity of 71-73\%. @jarmulska2020 also
+attempts to estimate the probability of the occurrence of the first year of
+a fiscal stress episode only (i.e. excluding ongoing stress episodes), whereby
+prediction accuracy dropped by around 10\%, indicating that predicting the first
+year of a fiscal stress episode is more difficult than predicting ongoing stress.
+However, @jarmulska2020 claims that the objective of an early warning model is
+not to forecast a fiscal crisis, but rather to warn from a heightened level of
+vulnerability. Thus, the results of the proposed models can still be helpful and
+it is still worth to further develop this tools.
 
-*see slide 22 ML VL 10 -> RF outperformed by other methods?*
+Examining the prediction accuracy over time, a drop can be observed during the
+sovereign debt crisis (2010-2012). This illustrates that a purely quantitative
+model, as the proposed logit lasso and the random forest model, are unable to
+directly consider qualitative factors as the reputation or credibility of an
+economy [@jarmulska2020]. The strength of fiscal institutions is also a key
+factor influencing the probability of fiscal stress episodes, which is not taken
+into account in the models shown. Therefore, @jarmulska2020 proposes the
+construction of an index which enables to consider these missing qualitative
+variables in the models.
+
+Despite the accusation of being a black-box, section \@ref(section-interpretation)
+showed that various methods can be used to provide interpretation of the results
+obtained by the machine learning approach. To further explore the usability and
+potential applications of machine learning in this and related questions, applying
+algorithms other than random forest could provide further valuable insights.
+
+<!-- Appendix ----------------------------------------------------------------->
+\newpage
+\appendix
+
+\section*{Appendix}
+
+hier noch grafik zu pred accuracy over time
+
+```{r test, fig.cap="lalala"}
+plot(x = 1:10, y = 1:10)
+```
 
 <!-- References --------------------------------------------------------------->
 
 \newpage
 
-# References
+\section*{References}
 
 The code and data used for this project can be found in the
 corresponding GitHub-repository:
@@ -660,3 +696,4 @@ corresponding GitHub-repository:
 \vspace{1cm}
 
 \bibliography{tex/bibliography.bib}
+
