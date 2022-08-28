@@ -575,15 +575,15 @@ visible [@jarmulska2020].
 The partial dependence plots (left-hand side) and the local effects plots
 (right-hand side) are visible in Figure \@ref(fig:rf-pdp-alep) for the variables
 *current account balance* and *unemployment changes*, whereby a similar shape of the
-curves is recognisable. When examining these plots for the independent variables
-used in this model, for many variables a U-shaped curve can be detected, indicating
-that both up- and downshifts in the corresponding variable contribute to higher
-probability of fiscal stress. However, these U-shaped curves are strongly influenced
+curves is recognisable when comparing partial dependence against local effects.
+When examining these plots for the independent variables used in this model, for
+many variables a U-shaped curve can be detected, indicating that both up- and
+downshifts in the corresponding variable contribute to higher probability of
+fiscal stress. However, these U-shaped curves are strongly influenced
 by the tails of the distribution, potentially problematic for both partial
 dependence and accumulated local effects plots and should therefore be interpreted
-with caution [@jarmulska2020].
-
-\textcolor{red}{*hier ein plot ersetzen mit u-shaped da interessanter, zB unemployment*}
+with caution [@jarmulska2020]. The rug plot on the x-axis in \@ref(fig:rf-pdp.alep)
+indicates the distribution of the variable considered.
 
 
 ```{r rf-pdp-alep, fig.cap="Partial Dependence (LHS) and Accumulated Local Effects (RHS) Plots"}
@@ -591,10 +591,12 @@ with caution [@jarmulska2020].
 # load data for partial dependence plots
 partial.ca_balance  <- list.export[["partial.ca_balance"]]
 partial.net_lending <- list.export[["partial.net_lending"]]
+partial.diff_unempl <- list.export[["partial.diff_unempl"]]
 
 # load data for accumulated local effects plots
 ale.ca_balance  <- list.export[["ale.ca_balance"]]
 ale.net_lending <- list.export[["ale.net_lending"]]
+ale.diff_unempl <- list.export[["ale.diff_unempl"]]
 
 # prepare plot
 # x.train.eval.df <- list.export[["x.train.eval.df"]]
@@ -611,21 +613,30 @@ rug(x.train.eval.df$ca_balance, ticksize = 0.015)
 
 # plot upper right: ace plot for ca balance
 plot(x = ale.ca_balance$results$ca_balance, y = ale.ca_balance$results$.value,
-           type = "l", xlab = "Current account balance",
-           ylab = "Predicted probability of stress")
+     type = "l", xlab = "Current account balance",
+     ylab = "Predicted probability of stress")
 rug(x.train.eval.df$ca_balance, ticksize = 0.015)
 
 # plot lower left: pdp for net lending
-plot(x = partial.net_lending$net_lending, y = partial.net_lending$yhat,
-           type = "l", xlab = "Net lending",
-           ylab = "Predicted probability of stress")
-rug(x.train.eval.df$net_lending, ticksize = 0.015)
-
+# plot(x = partial.net_lending$net_lending, y = partial.net_lending$yhat,
+#      type = "l", xlab = "Net lending",
+#      ylab = "Predicted probability of stress")
+# rug(x.train.eval.df$net_lending, ticksize = 0.015)
+# plot lower left: pdp for change in unemployment
+plot(x = partial.diff_unempl$diff_unempl, y = partial.diff_unempl$yhat,
+     type = "l", xlab = "Change in unemployment",
+     ylab = "Predicted probability of stress")
+rug(x.train.eval.df$diff_unempl, ticksize = 0.015)
 # plot lower right: ace plot net lending 
-plot(x = ale.net_lending$results$net_lending, y = ale.net_lending$results$.value,
-           type = "l", xlab = "Net lending",
-           ylab = "Predicted probability of stress")
-rug(x.train.eval.df$net_lending, ticksize = 0.015)
+# plot(x = ale.net_lending$results$net_lending, y = ale.net_lending$results$.value,
+#            type = "l", xlab = "Net lending",
+#            ylab = "Predicted probability of stress")
+# rug(x.train.eval.df$net_lending, ticksize = 0.015)
+# plot lower right: ace plot change in unemployment
+plot(x = ale.diff_unempl$results$diff_unempl, y = ale.diff_unempl$results$.value,
+     type = "l", xlab = "Change in unemployment",
+     ylab = "Predicted probability of stress")
+rug(x.train.eval.df$diff_unempl, ticksize = 0.015)
 ```
 
 <!-- \newpage -->
