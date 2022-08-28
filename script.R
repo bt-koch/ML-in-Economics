@@ -595,8 +595,8 @@ ale.net_lending <- FeatureEffect$new(predictor.rf.eval,
                                      feature = "net_lending")
 ale.ca_balance  <- FeatureEffect$new(predictor.rf.eval,
                                      feature = "ca_balance")
-ale.ca_balance  <- FeatureEffect$new(predictor.rf.eval,
-                                     feature = "diff_unempl")
+ale.diff_unempl  <- FeatureEffect$new(predictor.rf.eval,
+                                          feature = "diff_unempl")
 
 list.export[["ale.net_lending"]] <- ale.net_lending
 list.export[["ale.ca_balance"]]  <- ale.ca_balance
