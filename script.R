@@ -523,6 +523,8 @@ names(results.avg)[names(results.avg) == "Group.1"] <- "model"
 results.avg$avg <- rowMeans(results.avg[c("prop.pos", "prop.neg")])
 
 list.export[["results.avg"]] <- results.avg
+list.export[["results.lasso"]] <- results.lasso
+list.export[["results.rf"]] <- results.rf
 
 
 # -----------------------------------------------------------------------------.
