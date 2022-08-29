@@ -656,14 +656,14 @@ vulnerability. Thus, the results of the proposed models can still be helpful and
 it is still worth to further develop this tools.
 
 Examining the prediction accuracy over time, a drop can be observed during the
-sovereign debt crisis (2010-2012). This illustrates that a purely quantitative
-model, as the proposed logit lasso and the random forest model, are unable to
-directly consider qualitative factors as the reputation or credibility of an
-economy [@jarmulska2020]. The strength of fiscal institutions is also a key
-factor influencing the probability of fiscal stress episodes, which is not taken
-into account in the models shown. Therefore, @jarmulska2020 proposes the
-construction of an index which enables to consider these missing qualitative
-variables in the models.
+sovereign debt crisis (2010-2012, see Figure \@ref(fig:pred-accur-time)). This
+illustrates that a purely quantitative model, as the proposed logit lasso and
+the random forest model, are unable to directly consider qualitative factors as
+the reputation or credibility of an economy [@jarmulska2020]. The strength of
+fiscal institutions is also a key factor influencing the probability of fiscal
+stress episodes, which is not taken into account in the models shown. Therefore,
+@jarmulska2020 proposes the construction of an index which enables to consider
+these missing qualitative variables in the models.
 
 Despite the accusation of being a black-box, section \@ref(section-interpretation)
 showed that various methods can be used to provide interpretation of the results
@@ -677,10 +677,36 @@ algorithms other than random forest could provide further valuable insights.
 
 \section*{Appendix}
 
-hier noch grafik zu pred accuracy over time
+```{r pred-accur-time, fig.cap="Prediction accuracy over time"}
 
-```{r test, fig.cap="lalala"}
-plot(x = 1:10, y = 1:10)
+results.rf <- list.export[["results.rf"]]
+results.lasso <- list.export[["results.lasso"]]
+
+results.rf <- results.rf[results.rf$weight == 1.5,]
+results.lasso <- results.lasso[results.lasso$weight == 1.5,]
+
+par(cex = 0.9, cex.axis = 0.9,
+    las = 1, mgp = c(2.25, 0.55, 0), family = fontfamily)
+
+plot(x = results.rf[results.rf$model == "rf.GDP",]$year,
+     y = results.rf[results.rf$model == "rf.GDP",]$avg,
+     type = "l", xlab = "Year", ylab = "Average Performance",
+     lwd = 1.5)
+lines(x = results.rf[results.rf$model == "rf.DUMMY",]$year,
+      y = results.rf[results.rf$model == "rf.DUMMY",]$avg,
+      lty = "longdash", lwd = 1.5)
+lines(x = results.lasso[results.lasso$model == "logit.lasso.GDP",]$year,
+      y = results.lasso[results.lasso$model == "logit.lasso.GDP",]$avg,
+      lty = "dotted", lwd = 1.5)
+lines(x = results.lasso[results.lasso$model == "logit.lasso.DUMMY",]$year,
+      y = results.lasso[results.lasso$model == "logit.lasso.DUMMY",]$avg,
+      lty = "dotdash", lwd = 1.5)
+legend("bottomright",
+       legend = c("Random Forest (GDP)", "Random Forest (dummy)",
+                  "Logit LASSO (GDP)", "Logit LASSO (dummy)"),
+       lty = c("solid", "longdash", "dotted", "dotdash"),
+       cex = 0.9)
+
 ```
 
 <!-- References --------------------------------------------------------------->
