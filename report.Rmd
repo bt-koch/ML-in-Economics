@@ -70,15 +70,18 @@ data <- list.export[["data"]]
 \thispagestyle{plain}
 \begin{center}
     \Large
-    \textbf{Random forest versus logit models: Which offers better early warning
-    of fiscal stress?}
+    \textbf{Building an Early Warning Model for Fiscal Stress: \\ comparing
+    Logistic Regression with Random Forest}
         
     \vspace{0.4cm}
     \large
     replication paper
         
     \vspace{0.4cm}
-    \textbf{Bela Tim Koch} \\ 
+    \textbf{Bela Tim Koch} \\
+    17-734-377 \\
+    
+    \vspace{0.2cm}
     
     Machine Learning in Economics (458657) \\
     Spring Semester 2022 \\
@@ -86,7 +89,7 @@ data <- list.export[["data"]]
     \textbf{Departement of Economics} \\
     \textbf{University of Bern}
        
-    \vspace{0.9cm}
+    \vspace{0.5cm}
 \end{center}
 ```
 
@@ -100,12 +103,12 @@ data <- list.export[["data"]]
 
 Since the latest Great Recession with its corresponding deterioration of
 public finances, the monitoring and prevention of fiscal crises has
-become increasingly prominent in the political debate, leading to an
-increasing demand for the development of reliable and early indicators
+become increasingly prominent in the political debate, leading to a
+rising demand for the development of reliable and early indicators
 that signal possible fiscal stress. In order to be able to assess
 countries' vulnerability to fiscal distress ex-ante, the literature is
 increasingly devoted to the development of early warning systems for
-fiscal stress, which build on early warning systems for banking and
+fiscal stress, which build upon early warning systems for banking and
 currency crises [@honda2022]. The standard tool used in the literature
 for early warning systems are the signalling approach as well as
 discrete dependent variable models, such as logistic regression
@@ -113,34 +116,34 @@ discrete dependent variable models, such as logistic regression
 
 As an alternative to the traditional methods, early warning models based
 on machine learning techniques are proposed, claiming a possible
-improvement of prediction accuracy [@beutel2019]. As an example, when
+improvement of prediction accuracy [@beutel2019]. For example, when
 predicting the build-up of banking crises, the early warning system
-developed by @casabianca2019 which builds upon a supervised machine
-learning algorithm, i.e. Adaptive Boosting, outperforms the traditional
+developed by @casabianca2019, which builds upon a supervised machine
+learning algorithm (i.e. Adaptive Boosting) outperforms the traditional
 approach of using a logit model. Another example which shows that using
 machine learning could drastically improve prediction accuracy is the
 early warning system developed by @samitas2020, which reaches an
 accuracy of 98.8% when predicting the risk of contagion inside a
 financial network using a quadratic support vector machine.
 
-However, a disadvantage many of these machine learning methods compared
-to more traditional approaches is the difficulty of understanding how a
-result was obtained and are therefore often referred to as a black box
+However, a disadvantage of many of these machine learning methods compared
+to more traditional approaches is the difficulty of understanding how the
+results were obtained and are therefore often referred to as a black box
 [@ghoddusi2019]. Consequently, the researcher is confronted with a
 trade-off between prediction and interpretation. @ghoddusi2019 argue,
-that emphasis should be in interpretation for scientific research or
+that emphasis should be placed in interpretation for scientific research or
 policy decisions, since understanding the relationship and behavior
 among different variables is more important than prediction accuracy. In
 contrast, more emphasis is to be placed on prediction accuracy in
 specific industrial applications.
 
 This paper aims to replicate some of the work done by @jarmulska2020.
-Particular emphasis is placed on the comparison of the traditional
+In particular, attention will be paid on the comparison of the traditional
 method, i.e. a logit model with a least absolute shrinkage and selection
 operator, and a model based on machine learning, i.e. an implementation
 of the random forest algorithm. As the results are often criticized for
-being difficult to interpret, ways of interpreting the developed early
-warning model based on random forest are presented.
+being difficult to interpret, ways of interpreting the results obtained by the
+early warning model based on random forest are presented.
 
 # Model Describtion
 
@@ -151,35 +154,36 @@ the area under receiver operating curve (AUROC) as measures to assess
 the effectiveness of the early warning models. Since sensitivity
 corresponds to the proportion of stress episodes correctly classified
 whereby specificity corresponds to the proportion of tranquil episodes
-correctly classified, these metrics are dependent on the threshold,
+correctly classified, these metrics are dependent on the threshold
 which determines whether a period is classified as stress or tranquil
 episode [@jarmulska2020]. In this paper, this threshold is specified by
 maximizing the weighted sum of sensitivity and specificity. In contrast,
-the AUROC is a robust measure, as all possible thresholds are taken into
-account in their calculation. This measure represents the area under the
-receiver operating curve, which displays the trade-off between the true
+the AUROC is a robust measure, since all possible thresholds are considered
+in the calculation of the AUROC. This measure represents the area under the
+receiver operating curve (ROC), which displays the trade-off between the true
 positive rate (i.e. sensitivity) and the false positive rate (i.e. 1 -
-specificity). Theoretically, the AUROC can be between 0 and 1 (perfect
-classifier), whereby random guessing would result in to a value of 0.5
-[@fawcett2006].
+specificity). Theoretically, the AUROC can be between 0 (worst possible
+classifier) and 1 (perfect classifier), whereby random guessing would result in
+to a value of 0.5 [@fawcett2006].
 
 ## Logit Model with LASSO penalisation
 
-@jarmulska2020 implemented two version of discrete dependent variable
-models (logit regression), first a standard logit model with ordinary
+@jarmulska2020 implemented two versions of discrete dependent variable
+model (logit regression), first a standard logit model with ordinary
 least squares estimates and second a logit model with a least absolute
 shrinkage and selection operator (LASSO) penalization. These models are
 often used as the standard econometric approach, which is why they are
-used as the benchmark in this study.
+used as the benchmark in this study when assessing the usefulness of the
+Random Forest model.
 
 Ordinary least squares estimates often have low bias but large variance,
-reducing prediction accuracy - the prediction accuracy can sometimes be
-improved by shrinking some coefficients towards zero to sacrifice bias
-in order to reduce variance of the predicted values and possibly improve
-overall prediction accuracy [@tibshirani1996]. To do so, LASSO
-penalization as proposed in @tibshirani1996 can be applied. Because of
-this characteristics, only the logit LASSO model is considered in this
-replication.
+reducing prediction accuracy. Sometimes prediction accuracy can be improved
+by shrinking some coefficients towards zero to sacrifice bias in order to
+reduce variance of the predicted values [@tibshirani1996]. To do so, LASSO
+penalization as proposed in @tibshirani1996 can be applied. Because this
+study focuses on the comparison of prediction accuracy of the traditional
+approach of using logit regression versus a random forest model, only the
+logit LASSO model is considered in this replication.
 
 Following @hastie2009, the LASSO problem in the Lagrangian form is given
 as follows:
@@ -194,24 +198,24 @@ as follows:
 
 \noindent whereby $\lambda$ corresponds to the penalization parameter.
 As can be seen in Equation \eqref{eq:lasso}, the higher $\lambda$, the
-higher the number of coefficients shrunk to zero. Here, $\lambda$ is
-chosen by 5-fold cross-validation, maximizing the AUROC.
+stronger a high coefficient is penalized and therefore the higher the number
+of coefficients shrunk to zero. Here, $\lambda$ is chosen by 5-fold
+cross-validation, maximizing the AUROC.
 
 ## Random Forest
 
 As an alternative to the logit model, @jarmulska2020 applied the random
 forest algorithm following @breiman2001 as an ensemble of multiple
-classification and regression trees for binary classification. A single
-tree divides the predictor space into distinct and non-overlapping
-regions, whereby an observation is classified depending on the region it
-falls into, i.e. at the terminal node. Each non-terminal node
-corresponds to a question with a binary response, what determines the
-structure of the tree. Since each terminal node assigns the same class
-to all observations within this node, minimizing the classification
-error at the level of the terminal nodes results in a minimization of
-the tree's overall classification error [@jarmulska2020]. To measure the
-precision of the fit, the Gini Index, which is used as a loss function
-in classification and regression trees, can be utilised [@jarmulska2020]:
+classification trees for binary classification. A single tree divides the
+predictor space into distinct and non-overlapping regions, whereby an
+observation is classified depending on the region it falls into, i.e. at
+the terminal node. Each non-terminal node corresponds to a question with
+a binary response, what determines the structure of the tree. Since each
+terminal node assigns the same class to all observations within this node,
+minimizing the classification error at the level of the terminal nodes results
+in a minimization of the tree's overall classification error [@jarmulska2020].
+To measure the precision of the fit, the Gini Index, which is used as a loss
+function in classification and regression trees, can be used [@jarmulska2020]:
 
 ```{=tex}
 \begin{equation} \label{eq:gini}
@@ -222,20 +226,21 @@ g(w) = \sum_{k \neq j}p_{wk}p_{wj} = \sum_k p_{wk}(1-p_{wk})
 \noindent whereby $p_{wj}$ corresponds to the probability distribution
 of class $j$ in node $w$.
 
-However, such decision trees might suffer from overfitting, what can be
+However, such decision trees might suffer from overfitting, which can be
 counteracted by bootstrapping the training set and averaging all the
 predictions [@james2013]. If these so called bagged trees are all
 influenced by some strong predictors, the single trees might be
 correlated resulting again in overfitting. To decorrelate the single
 trees, the non-terminal nodes can be forced to consider only a subset of
 the predictors, increasing the difference between the single trees,
-through which the overfitment problem can be reduced [@james2013]. This
+through which the problem of overfitting can be reduced [@james2013]. This
 ensemble method corresponds to the random forest algorithm. In this application,
 10'000 trees are grown to construct the random forest. The number of variables
 considered at each non-terminal node is determined by the square-root of the
-number of variables considered by the random forest algorithm, i.e. 4.
+number of variables considered by the random forest algorithm, which in this
+application corresponds to four.
 
-# Data Describtion
+# Data Description
 
 ## Dependent Variable
 
@@ -393,12 +398,12 @@ kbl(means.table[, -which(names(means.table) == "category")], booktabs = T,
 
 \noindent Pairwise correlation is also examined and visualized in Figure
 \@ref(fig:corrplot). Accordingly, the pairwise correlations are
-relatively low in most cases, which is why it can be presumed that the
+low in most cases, which is why it can be presumed that the
 variables contain different information and could thus be relevant for
 the early warning model. However, some variables are highly correlated,
 which is problematic for econometric models such as the logit model and
 therefore should be excluded in the model specification, while high
-pairwise correlations is unproblematic for the random forest model and
+pairwise correlations are unproblematic for the random forest model and
 the variables concerned can be kept in the model specification
 [@jarmulska2020].
 
@@ -422,16 +427,16 @@ classify the state of the economy two years later. For the logit model,
 all variables with pairwise correlations exceeding 65% are excluded to
 avoid multicollinearity and biases. The models are fitted twice using
 either a binary variable as a explanatory variable to indicate whether
-an economy is developed or developing or GDP per capita as a continuous
-measure for the state of development of an economy. If the binary
+an economy is developed respectively developing or GDP per capita as a
+continuous measure for the state of development of an economy. If the binary
 variable is used, interaction terms are added to the logit model, while
 the random forest model takes interactions into account by construction
 thus making further adjustments redundant [@jarmulska2020].
 
 The performance of the models measured using sensitivity (\% of correctly
 classified stress episodes) and specificity (\% of correctly classified tranquil
-episodes) depends on the threshold chosen, whereby when the predicted dependent
-variable exceeds this threshold, a period is classified as a stress episode. 
+episodes) depends on the threshold chosen, whereby a period is classified as
+a stress episode if the predicted dependent variable exceeds this threshold.
 Following @jarmulska2020, this threshold is determined by maximizing the weighted
 average of sensitivity and specificity, weighting sensitivity by factor 1, 1.5
 and 2 relatively to sensitivity. Table \@ref(tab:avg-pred-accur) compares the
@@ -440,7 +445,7 @@ recursively trained models by year on the corresponding test data, using a
 threshold determined by the maximized weighted average using factor 1.5 (note
 that the AUROC is not dependent on the threshold chosen [@jarmulska2020]). Thereby
 it can be seen that the model using random forest outperforms the logit LASSO 
-approach in both specifications and in all performance metrics.
+approach in both specifications and concerning all performance metrics.
 
 ```{r avg-pred-accur}
 # get relevant data
@@ -460,7 +465,7 @@ dt[colnames(dt) != "model"] <- apply(dt[colnames(dt) != "model"], 2, function(x)
                                              & \multicolumn{1}{c}{\begin{tabular}[c]{@{}r@{}}advanced\\ dummy\end{tabular}} & \multicolumn{1}{c}{\begin{tabular}[c]{@{}r@{}}GDP\\ per capita\end{tabular}} & \multicolumn{1}{c}{\begin{tabular}[c]{@{}r@{}}advanced\\ dummy\end{tabular}} & \multicolumn{1}{c}{\begin{tabular}[c]{@{}r@{}}GDP\\ per capita\end{tabular}} \\ \hline
 \begin{tabular}[c]{@{}l@{}}sensitivity (\% of correctly\\ classified stress episodes)\end{tabular}   & `r dt[dt$model == "logit.lasso.DUMMY",]$prop.pos` & `r dt[dt$model == "logit.lasso.GDP",]$prop.pos` & `r dt[dt$model == "rf.DUMMY",]$prop.pos` & `r dt[dt$model == "rf.GDP",]$prop.pos` \\ \hline
 \begin{tabular}[c]{@{}l@{}}specificity (\% of correctly\\ classified tranquil episodes)\end{tabular} & `r dt[dt$model == "logit.lasso.DUMMY",]$prop.neg` & `r dt[dt$model == "logit.lasso.GDP",]$prop.neg` & `r dt[dt$model == "rf.DUMMY",]$prop.neg` & `r dt[dt$model == "rf.GDP",]$prop.neg` \\ \hline
-\begin{tabular}[c]{@{}l@{}}Average of sensitivity\\ and specificity \end{tabular}                                      & `r dt[dt$model == "logit.lasso.DUMMY",]$avg`      & `r dt[dt$model == "logit.lasso.GDP",]$avg`      & `r dt[dt$model == "rf.DUMMY",]$avg`      & `r dt[dt$model == "rf.GDP",]$avg`      \\ \hline
+\begin{tabular}[c]{@{}l@{}}Average of sensitivity\\ and specificity (\%) \end{tabular}                                      & `r dt[dt$model == "logit.lasso.DUMMY",]$avg`      & `r dt[dt$model == "logit.lasso.GDP",]$avg`      & `r dt[dt$model == "rf.DUMMY",]$avg`      & `r dt[dt$model == "rf.GDP",]$avg`      \\ \hline
 \begin{tabular}[c]{@{}l@{}}AUROC\\ \phantom{AUROC} \end{tabular}                                        & `r dt[dt$model == "logit.lasso.DUMMY",]$auc`      & `r dt[dt$model == "logit.lasso.GDP",]$auc`      & `r dt[dt$model == "rf.DUMMY",]$auc`      & `r dt[dt$model == "rf.GDP",]$auc`      \\ \hline
 \end{tabular}
 \caption{\label{tab:avg-pred-accur}Average prediction accuracy of early warning models for years 2009-2018}
@@ -471,13 +476,13 @@ dt[colnames(dt) != "model"] <- apply(dt[colnames(dt) != "model"], 2, function(x)
 
 ### Interpretation of logit LASSO vs Random Forest
 
-As seen in Table \@ref(tab:avg-pred-accur), the model using random forest outperforms
-the more traditionally used logit model. Depending on the application, however,
-performance alone is not the only relevant factor when choosing a model. Another
+As seen in Table \@ref(tab:avg-pred-accur), the model using random forest
+outperforms the traditional logit model. However, depending on the application,
+performance is not the only relevant factor when choosing a model. Another
 central criterion in many use cases is the interpretability of the model, whereby
 the logit model benefits from the possibility of applying classical econometric
-methods (marginal effects, Wald test). However, there are also various methods
-that can be used to interpret the random forest model. These methods are
+methods (such as marginal effects, Wald test). But there are also various
+methods that can be used to interpret the random forest model. These methods are
 discussed in the following chapters.
 
 ### Variable Importance [@breiman2001] and Shapley Values [@shapley1953]
@@ -503,7 +508,7 @@ in @strumbelj2014 or in @ghorbani2019.
 
 Figure \@ref(fig:rf-VI-SV) shows the variable importance and the Shapley values
 for all variables considered in the model, whereby a higher value indicates a
-higher influence in the prediction. In line with the results obtained by
+higher influence on the prediction. In line with the results obtained by
 @jarmulska2020, both Breiman's variable importance and Shapley values similarly
 rank the importance of the variables. 
 
@@ -559,13 +564,14 @@ axis(side = 2, at = 1:20, labels = labs.shapley)
 In this application of predicting probabilities, partial dependence plots according
 to @friedman2001 show the effect of a variable at different values on the predicted
 probability. To do this, all other independent variables are averaged and a model
-is fitted, depending on the varying variable to be considered. Certain artificially
-created observations could bias the results, especially in the case of correlated
-variables, since these observations might be implausible in reality [@jarmulska2020].
+is fitted, depending on the varying variable to be considered. It shoud be noted
+that certain artificially created observations could bias the results, especially
+in the case of correlated variables, since these observations might be implausible
+in reality [@jarmulska2020].
 
 As an alternative to partial dependence plots, accumulated local effects plots
 following @apley2020 can be used, for which correlation among the independent
-variables does not lead to biases. Reason for this is that accumulated local
+variables does not lead to biases. Reason for this is, that accumulated local
 effects plots display the effect of a change in the variable to be considered
 on the predicted probability only in a small interval, accumulated over a grid
 of such small intervals, hence making pure effect of changes in this variable
@@ -575,8 +581,8 @@ The partial dependence plots (left-hand side) and the local effects plots
 (right-hand side) are visible in Figure \@ref(fig:rf-pdp-alep) for the variables
 *current account balance* and *unemployment changes*, whereby a similar shape of the
 curves is recognisable when comparing partial dependence against local effects.
-When examining these plots for the independent variables used in this model, for
-many variables a U-shaped curve can be detected, indicating that both up- and
+For many independent variables used in this model, an U-shaped curve can be
+detected when examining these plots, indicating that both up- and
 downshifts in the corresponding variable contribute to higher probability of
 fiscal stress. However, these U-shaped curves are strongly influenced
 by the tails of the distribution, potentially problematic for both partial
@@ -644,7 +650,7 @@ rug(x.train.eval.df$diff_unempl, ticksize = 0.015)
 # Conclusion
 
 As obtained in Table \@ref(tab:avg-pred-accur), the random forest model with an
-average of sensitivity and specificity of 77-79\% outperforms the logit lasso model
+average of sensitivity and specificity of 77-79\% outperforms the logit LASSO model
 with an average of sensitivity and specificity of 71-73\%. @jarmulska2020 also
 attempts to estimate the probability of the occurrence of the first year of
 a fiscal stress episode only (i.e. excluding ongoing stress episodes), whereby
@@ -657,10 +663,10 @@ it is still worth to further develop this tools.
 
 Examining the prediction accuracy over time, a drop can be observed during the
 sovereign debt crisis (2010-2012, see Figure \@ref(fig:pred-accur-time)). This
-illustrates that a purely quantitative model, as the proposed logit lasso and
-the random forest model, are unable to directly consider qualitative factors as
-the reputation or credibility of an economy [@jarmulska2020]. The strength of
-fiscal institutions is also a key factor influencing the probability of fiscal
+illustrates that a purely quantitative model, such as the proposed logit LASSO
+and the random forest model, are unable to directly consider qualitative factors
+like the reputation or credibility of an economy [@jarmulska2020]. The strength
+of fiscal institutions is also a key factor influencing the probability of fiscal
 stress episodes, which is not taken into account in the models shown. Therefore,
 @jarmulska2020 proposes the construction of an index which enables to consider
 these missing qualitative variables in the models.
