@@ -436,66 +436,6 @@ for(i in 2007:max(data$year)){
       rf.response.train.eval <- rf.response.train
       list.export[["rf.response.train.eval"]] <- rf.response.train.eval
       
-      # x.train.df <- as.data.frame(x.train)
-      # 
-      # predictor.rf.eval <- Predictor$new(
-      #   model = rf.fit.eval,
-      #   data = x.train.df,
-      #   y = rf.response.train,
-      #   predict.function = pred,
-      #   class = "classification"
-      # )
-      # 
-      # # calculate shapley values for each observation
-      # for(obs in 1:nrow(x.train.df)){
-      # 
-      #   cat("\rcalculate shapley values for observation", obs, "of",
-      #       nrow(x.train.df), "observations")
-      #   flush.console()
-      # 
-      #   x.interest <- x.train.df[obs,]
-      #   temp <- Shapley$new(predictor.rf.eval, x.interest = x.interest)
-      # 
-      #   temp <- data.frame(
-      #     feature = temp$results$feature,
-      #     phi = temp$results$phi
-      #   )
-      # 
-      #   shapley.values <- rbind(shapley.values, temp)
-      # 
-      # }
-      # 
-      # # calculate shapley values as averages of absolute values of shapley values
-      # # of preductors in each observation
-      # shapley.values.raw <- shapley.values
-      # shapley.values$phi <- abs(shapley.values$phi)
-      # shapley.values <- aggregate(shapley.values$phi,
-      #                             by = list(shapley.values$feature),
-      #                             FUN = mean)
-      # 
-      # list.export[["shapley.values"]] <- shapley.values
-      # 
-      # 
-      # # calculate partail dependence
-      # partial.net_lending <- partial(rf.fit.eval, train = x.train.eval,
-      #                                pred.var = "net_lending", plot = F,
-      #                                type = "classification", which.class = 2)
-      # partial.ca_balance <- partial(rf.fit.eval, train = x.train.eval,
-      #                               pred.var = "ca_balance", plot = F,
-      #                               type = "classification", which.class = 2)
-      # 
-      # list.export[["partial.net_lending"]] <- partial.net_lending
-      # list.export[["partial.ca_balance"]]  <- partial.ca_balance
-      # 
-      # # calculate accumulated local effects
-      # ale.net_lending <- FeatureEffect$new(predictor.rf.eval,
-      #                                      feature = "net_lending")
-      # ale.ca_balance  <- FeatureEffect$new(predictor.rf.eval,
-      #                                      feature = "ca_balance")
-      # 
-      # list.export[["ale.net_lending"]] <- ale.net_lending
-      # list.export[["ale.ca_balance"]]  <- ale.ca_balance
-      
     }
     
   } # end of loop over dev.measure
