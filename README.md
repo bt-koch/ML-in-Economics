@@ -22,19 +22,23 @@ stress episode coded as 1).
 The data corresponds to the data source provided by the author of the original
 paper and was downloaded from [figshare.com](https://figshare.com/articles/dataset/dataframe_csv/11593899).
 
-to do - describe type of var in paper (binary etc)
-
-
-
 ## Models
 
 This project compares the traditional econometric approach of logit regression
-(with least absolute shrinkage and selection operator) to an implementation of 
-random forest to build an early warning system signalling risk of fiscal stress.
+(with least absolute shrinkage and selection operator, LASSO) to an implementation
+of random forest to build an early warning system signalling risk of fiscal stress.
 
 ## Results
 
-describe key take aways
+The model based on the random forest algorithm achieved an average of sensitivity
+and specificity of 77-79%, therefore outperforming the model based logit LASSO
+with an average of sensitivity and specificity of 71-73%. However, according
+to the paper of [Barbara Jarmulska (2020)](https://www.ecb.europa.eu/pub/pdf/scpwps/ecb.wp2408~aa6b05aed7.en.pdf),
+the prediction accuracy drops by around 10\% when trying to predict the first
+occurrence of a fiscal stress episode. However, the proposed models can still
+be helpful, since the objective of an early warning model is not to forecast
+a fiscal crisis, but rather to warn from a heightened level of vulnerability.
+Therefore, it is still worth to further develop these models.
 
 ## About
 
