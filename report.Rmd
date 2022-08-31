@@ -70,26 +70,27 @@ data <- list.export[["data"]]
 \thispagestyle{plain}
 \begin{center}
     \Large
-    \textbf{Building an Early Warning Model for Fiscal Stress: \\ comparing
-    Logistic Regression with Random Forest}
+    \textbf{Building an Early Warning Model for Fiscal Stress \\
+    \large
+    comparing Logistic Regression with Random Forest}
         
     \vspace{0.4cm}
     \large
     replication paper
         
-    \vspace{0.4cm}
+    \vspace{0.2cm}
     \textbf{Bela Tim Koch} \\
     17-734-377 \\
     
-    \vspace{0.2cm}
+    \vspace{0.11cm}
     
     Machine Learning in Economics (458657) \\
     Spring Semester 2022 \\
-    \vspace{0.4cm}
-    \textbf{Departement of Economics} \\
+    \vspace{0.3cm}
+    \textbf{Department of Economics} \\
     \textbf{University of Bern}
        
-    \vspace{0.5cm}
+    \vspace{0.3cm}
 \end{center}
 ```
 
@@ -108,9 +109,9 @@ rising demand for the development of reliable and early indicators
 that signal possible fiscal stress. In order to be able to assess
 countries' vulnerability to fiscal distress ex-ante, the literature is
 increasingly devoted to the development of early warning systems for
-fiscal stress, which build upon early warning systems for banking and
+fiscal stress, which builds upon early warning systems for banking and
 currency crises [@honda2022]. The standard tool used in the literature
-for early warning systems are the signalling approach as well as
+for early warning systems are the signaling approach as well as
 discrete dependent variable models, such as logistic regression
 [@jarmulska2020].
 
@@ -128,10 +129,10 @@ financial network using a quadratic support vector machine.
 
 However, a disadvantage of many of these machine learning methods compared
 to more traditional approaches is the difficulty of understanding how the
-results were obtained and are therefore often referred to as a black box
+results were obtained, which is why they are often referred to as a black box
 [@ghoddusi2019]. Consequently, the researcher is confronted with a
 trade-off between prediction and interpretation. @ghoddusi2019 argue,
-that emphasis should be placed in interpretation for scientific research or
+that emphasis should be placed on interpretation for scientific research or
 policy decisions, since understanding the relationship and behavior
 among different variables is more important than prediction accuracy. In
 contrast, more emphasis is to be placed on prediction accuracy in
@@ -141,11 +142,12 @@ This paper aims to replicate some of the work done by @jarmulska2020.
 In particular, attention will be paid on the comparison of the traditional
 method, i.e. a logit model with a least absolute shrinkage and selection
 operator, and a model based on machine learning, i.e. an implementation
-of the random forest algorithm. As the results are often criticized for
-being difficult to interpret, ways of interpreting the results obtained by the
-early warning model based on random forest are presented.
+of the random forest algorithm. As the results obtained by a machine learning
+model are often criticized for being difficult to interpret, ways of
+interpreting the results obtained by the early warning model based on random
+forest are presented.
 
-# Model Describtion
+# Model Description
 
 ## Performance Metrics
 
@@ -155,7 +157,7 @@ the effectiveness of the early warning models. Since sensitivity
 corresponds to the proportion of stress episodes correctly classified
 whereby specificity corresponds to the proportion of tranquil episodes
 correctly classified, these metrics are dependent on the threshold
-which determines whether a period is classified as stress or tranquil
+which determines whether a period is classified as a stress or tranquil
 episode [@jarmulska2020]. In this paper, this threshold is specified by
 maximizing the weighted sum of sensitivity and specificity. In contrast,
 the AUROC is a robust measure, since all possible thresholds are considered
@@ -166,7 +168,7 @@ specificity). Theoretically, the AUROC can be between 0 (worst possible
 classifier) and 1 (perfect classifier), whereby random guessing would result in
 to a value of 0.5 [@fawcett2006].
 
-## Logit Model with LASSO penalisation
+## Logit Model with LASSO Penalization
 
 @jarmulska2020 implemented two versions of discrete dependent variable
 model (logit regression), first a standard logit model with ordinary
@@ -174,7 +176,7 @@ least squares estimates and second a logit model with a least absolute
 shrinkage and selection operator (LASSO) penalization. These models are
 often used as the standard econometric approach, which is why they are
 used as the benchmark in this study when assessing the usefulness of the
-Random Forest model.
+random forest model.
 
 Ordinary least squares estimates often have low bias but large variance,
 reducing prediction accuracy. Sometimes prediction accuracy can be improved
@@ -228,7 +230,7 @@ of class $j$ in node $w$.
 
 However, such decision trees might suffer from overfitting, which can be
 counteracted by bootstrapping the training set and averaging all the
-predictions [@james2013]. If these so called bagged trees are all
+predictions [@james2013]. If these so-called bagged trees are all
 influenced by some strong predictors, the single trees might be
 correlated resulting again in overfitting. To decorrelate the single
 trees, the non-terminal nodes can be forced to consider only a subset of
@@ -426,11 +428,11 @@ and the random forest model are implemented recursively, trying to
 classify the state of the economy two years later. For the logit model,
 all variables with pairwise correlations exceeding 65% are excluded to
 avoid multicollinearity and biases. The models are fitted twice using
-either a binary variable as a explanatory variable to indicate whether
+either a binary variable as an explanatory variable to indicate whether
 an economy is developed respectively developing or GDP per capita as a
 continuous measure for the state of development of an economy. If the binary
 variable is used, interaction terms are added to the logit model, while
-the random forest model takes interactions into account by construction
+the random forest model takes interactions into account by construction,
 thus making further adjustments redundant [@jarmulska2020].
 
 The performance of the models measured using sensitivity (\% of correctly
@@ -468,13 +470,13 @@ dt[colnames(dt) != "model"] <- apply(dt[colnames(dt) != "model"], 2, function(x)
 \begin{tabular}[c]{@{}l@{}}Average of sensitivity\\ and specificity (\%) \end{tabular}                                      & `r dt[dt$model == "logit.lasso.DUMMY",]$avg`      & `r dt[dt$model == "logit.lasso.GDP",]$avg`      & `r dt[dt$model == "rf.DUMMY",]$avg`      & `r dt[dt$model == "rf.GDP",]$avg`      \\ \hline
 \begin{tabular}[c]{@{}l@{}}AUROC\\ \phantom{AUROC} \end{tabular}                                        & `r dt[dt$model == "logit.lasso.DUMMY",]$auc`      & `r dt[dt$model == "logit.lasso.GDP",]$auc`      & `r dt[dt$model == "rf.DUMMY",]$auc`      & `r dt[dt$model == "rf.GDP",]$auc`      \\ \hline
 \end{tabular}
-\caption{\label{tab:avg-pred-accur}Average prediction accuracy of early warning models for years 2009-2018}
+\caption{\label{tab:avg-pred-accur}Average Prediction Accuracy of Early Warning Models for Years 2009-2018}
 \end{table}
 ```
 
 ## Interpretability of Random Forest Algorithm {#section-interpretation}
 
-### Interpretation of logit LASSO vs Random Forest
+### Interpretation of Logit LASSO vs Random Forest
 
 As seen in Table \@ref(tab:avg-pred-accur), the model using random forest
 outperforms the traditional logit model. However, depending on the application,
@@ -559,12 +561,12 @@ abline(h = 1:20, lty = 3)
 axis(side = 2, at = 1:20, labels = labs.shapley)
 ```
 
-### Partial dependence plots [@friedman2001] and Accumulated local effects plots [@apley2020]
+### Partial Dependence Plots [@friedman2001] and Accumulated Local Effects Plots [@apley2020]
 
 In this application of predicting probabilities, partial dependence plots according
 to @friedman2001 show the effect of a variable at different values on the predicted
 probability. To do this, all other independent variables are averaged and a model
-is fitted, depending on the varying variable to be considered. It shoud be noted
+is fitted, depending on the varying variable to be considered. It should be noted
 that certain artificially created observations could bias the results, especially
 in the case of correlated variables, since these observations might be implausible
 in reality [@jarmulska2020].
@@ -580,7 +582,7 @@ visible [@jarmulska2020].
 The partial dependence plots (left-hand side) and the local effects plots
 (right-hand side) are visible in Figure \@ref(fig:rf-pdp-alep) for the variables
 *current account balance* and *unemployment changes*, whereby a similar shape of the
-curves is recognisable when comparing partial dependence against local effects.
+curves is recognizable when comparing partial dependence against local effects.
 For many independent variables used in this model, an U-shaped curve can be
 detected when examining these plots, indicating that both up- and
 downshifts in the corresponding variable contribute to higher probability of
@@ -605,7 +607,6 @@ ale.net_lending <- list.export[["ale.net_lending"]]
 ale.diff_unempl <- list.export[["ale.diff_unempl"]]
 
 # prepare plot
-# x.train.eval.df <- list.export[["x.train.eval.df"]]
 x.train.eval.df <- as.data.frame(list.export[["x.train.eval"]])
 
 par(mfrow = c(2,2), mar = c(5.1, 4.1, 1, 2.1), cex = 0.7, cex.axis = 0.75,
@@ -623,21 +624,12 @@ plot(x = ale.ca_balance$results$ca_balance, y = ale.ca_balance$results$.value,
      ylab = "Predicted probability of stress")
 rug(x.train.eval.df$ca_balance, ticksize = 0.015)
 
-# plot lower left: pdp for net lending
-# plot(x = partial.net_lending$net_lending, y = partial.net_lending$yhat,
-#      type = "l", xlab = "Net lending",
-#      ylab = "Predicted probability of stress")
-# rug(x.train.eval.df$net_lending, ticksize = 0.015)
 # plot lower left: pdp for change in unemployment
 plot(x = partial.diff_unempl$diff_unempl, y = partial.diff_unempl$yhat,
      type = "l", xlab = "Change in unemployment",
      ylab = "Predicted probability of stress")
 rug(x.train.eval.df$diff_unempl, ticksize = 0.015)
-# plot lower right: ace plot net lending 
-# plot(x = ale.net_lending$results$net_lending, y = ale.net_lending$results$.value,
-#            type = "l", xlab = "Net lending",
-#            ylab = "Predicted probability of stress")
-# rug(x.train.eval.df$net_lending, ticksize = 0.015)
+
 # plot lower right: ace plot change in unemployment
 plot(x = ale.diff_unempl$results$diff_unempl, y = ale.diff_unempl$results$.value,
      type = "l", xlab = "Change in unemployment",
@@ -659,7 +651,7 @@ year of a fiscal stress episode is more difficult than predicting ongoing stress
 However, @jarmulska2020 claims that the objective of an early warning model is
 not to forecast a fiscal crisis, but rather to warn from a heightened level of
 vulnerability. Thus, the results of the proposed models can still be helpful and
-it is still worth to further develop this tools.
+it is still worth to further develop these tools.
 
 Examining the prediction accuracy over time, a drop can be observed during the
 sovereign debt crisis (2010-2012, see Figure \@ref(fig:pred-accur-time)). This
@@ -667,7 +659,7 @@ illustrates that a purely quantitative model, such as the proposed logit LASSO
 and the random forest model, are unable to directly consider qualitative factors
 like the reputation or credibility of an economy [@jarmulska2020]. The strength
 of fiscal institutions is also a key factor influencing the probability of fiscal
-stress episodes, which is not taken into account in the models shown. Therefore,
+stress episodes, which is not considered in the models shown. Therefore,
 @jarmulska2020 proposes the construction of an index which enables to consider
 these missing qualitative variables in the models.
 
@@ -683,7 +675,7 @@ algorithms other than random forest could provide further valuable insights.
 
 \section*{Appendix}
 
-```{r pred-accur-time, fig.cap="Prediction accuracy over time"}
+```{r pred-accur-time, fig.cap="Prediction Accuracy over Time"}
 
 results.rf <- list.export[["results.rf"]]
 results.lasso <- list.export[["results.lasso"]]
