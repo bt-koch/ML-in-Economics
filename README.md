@@ -1,6 +1,6 @@
 # Machine Learning in Economics
 
-The goal of this project is to build an early warning system for fiscal stress episodes using economic data. At the same time, the traditional econometric approach of using logistic regression is compared to a more modern approach of using a random forest algorithm.
+The goal of this project is to build an early warning system for fiscal stress episodes using economic data. Additionally, the traditional econometric approach of using logistic regression is compared to the random forest algorithm.
 
 ## Data
 
